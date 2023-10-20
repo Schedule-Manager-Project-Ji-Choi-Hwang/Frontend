@@ -1,11 +1,9 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
-export default function MainPage() {
+export default function HomePage() {
     return (
-        <View style={Styles.container}>
-            <Text style={Styles.Text}>메인 페이지</Text>
-        </View>
+        <View style={Styles.container}></View>
     );
 }
 
