@@ -33,7 +33,7 @@ export default function LoginScreen({ navigation }) {
         }
         formBody = formBody.join('&');
 
-        fetch('http://localhost:8080/api/user/login', {
+        fetch('http://localhost:8080/subjects/add', {
             method: 'POST',
             body: formBody,
             headers: {

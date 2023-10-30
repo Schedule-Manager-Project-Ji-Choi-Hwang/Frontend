@@ -1,5 +1,11 @@
 import React, { useState, createRef } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import {
+    View,
+    Text,
+    Keyboard,
+    TouchableWithoutFeedback,
+    StyleSheet
+} from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
 
 export default function SignUpScreen(props) {
@@ -54,7 +60,7 @@ export default function SignUpScreen(props) {
         }
         formBody = formBody.join('&');
 
-        fetch('http://localhost:8080/api/user/register', {
+        fetch('http://localhost:8080/member/sign-up', {
             method: 'POST',
             body: formBody,
             headers: {
@@ -108,28 +114,27 @@ export default function SignUpScreen(props) {
         );
     }
     return (
-        <View style={Styles.container}>
-            <Text style={Styles.title}>회원가입</Text>
-            <TextInput
-                label="아이디"
-                style={Styles.input}
-                onChangeText={(id) => setId(id)}
-                ref={idInputRef}
-                returnKeyType="next"
-                onSubmitEditing={() =>
-                    idInputRef.current && idInputRef.current.focus()
-                }
-                blurOnSubmit={false}
-            />
-            <TextInput
-                label="비밀번호"
-                style={Styles.input}
-                onChangeText={(password) => setPassword(password)}
-                ref={passwordInputRef}
-                returnKeyType="next"
-                blurOnSubmit={false}
-            />
-            {/* <TextInput
+        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+            <View style={Styles.container}>
+                <Text style={Styles.title}>회원가입</Text>
+                <TextInput
+                    label="아이디"
+                    style={Styles.input}
+                    onChangeText={(id) => setId(id)}
+                    ref={idInputRef}
+                    onSubmitEditing={() =>
+                        idInputRef.current && idInputRef.current.focus()
+                    }
+                    blurOnSubmit={false}
+                />
+                <TextInput
+                    label="비밀번호"
+                    style={Styles.input}
+                    onChangeText={(password) => setPassword(password)}
+                    ref={passwordInputRef}
+                    blurOnSubmit={false}
+                />
+                {/* <TextInput
                 label="비밀번호 확인"
                 style={Styles.input}
                 onChangeText={(id) => setId(id)}
@@ -138,32 +143,31 @@ export default function SignUpScreen(props) {
                 }
                 blurOnSubmit={false}
             /> */}
-            <TextInput
-                label="이름"
-                style={Styles.input}
-                onChangeText={(userName) => setUserName(userName)}
-                ref={nameInputRef}
-                returnKeyType="next"
-                onSubmitEditing={() =>
-                    nameInputRef.current && nameInputRef.current.focus()
-                }
-                blurOnSubmit={false}
-            />
-            <TextInput
-                label="이메일"
-                style={Styles.input}
-                onChangeText={(userEmail) => setUserEmail(userEmail)}
-                ref={emailInputRef}
-                returnKeyType="next"
-                onSubmitEditing={() =>
-                    emailInputRef.current && emailInputRef.current.focus()
-                }
-                blurOnSubmit={false}
-            />
-            <Button onPress={handleSubmitButton}>
-                회원가입
-            </Button>
-        </View>
+                <TextInput
+                    label="이름"
+                    style={Styles.input}
+                    onChangeText={(userName) => setUserName(userName)}
+                    ref={nameInputRef}
+                    onSubmitEditing={() =>
+                        nameInputRef.current && nameInputRef.current.focus()
+                    }
+                    blurOnSubmit={false}
+                />
+                <TextInput
+                    label="이메일"
+                    style={Styles.input}
+                    onChangeText={(userEmail) => setUserEmail(userEmail)}
+                    ref={emailInputRef}
+                    onSubmitEditing={() =>
+                        emailInputRef.current && emailInputRef.current.focus()
+                    }
+                    blurOnSubmit={false}
+                />
+                <Button onPress={handleSubmitButton}>
+                    회원가입
+                </Button>
+            </View>
+        </TouchableWithoutFeedback>
     );
 }
 
