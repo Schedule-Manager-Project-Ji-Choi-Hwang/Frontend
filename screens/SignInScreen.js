@@ -1,3 +1,4 @@
+import axios from 'axios';
 import React, { useState, createRef } from 'react';
 import { View, Text, StyleSheet, Keyboard } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
@@ -25,33 +26,16 @@ export default function LoginScreen({ navigation }) {
         }
         setLoading(true);
         let dataToSend = { id: id, password: password };
-        let formBody = [];
-        for (let key in dataToSend) {
-            let encodedKey = encodeURIComponent(key);
-            let encodedValue = encodeURIComponent(dataToSend[key]);
-            formBody.push(encodedKey + '=' + encodedValue);
-        }
-        formBody = formBody.join('&');
 
-        fetch('http://localhost:8080/subjects/add', {
-            method: 'POST',
-            body: formBody,
-            headers: {
-                'Content-Type':
-                    'application/x-www-form-urlencoded;charset=UTF-8',
-            },
-        })
-            .then((response) => response.json())
-            .then((responseJson) => {
+        axios.post('/member/log-in', dataToSend)
+            .then((response) => {
                 setLoading(false);
-                console.log(responseJson);
-                if (responseJson.status === 'success') {
-                    AsyncStorage.setItem('id', responseJson.data.id);
-                    console.log(responseJson.data.id);
+                // 서버로부터 받은 응답을 처리합니다.
+                if (response.data.status === 'success') {
+                    AsyncStorage.setItem('id', response.data.data.id);
                     navigation.replace('Navigation');
                 } else {
-                    setErrortext(responseJson.msg);
-                    console.log('Please check your id or password');
+                    setErrortext(response.data.msg);
                 }
             })
             .catch((error) => {

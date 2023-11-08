@@ -1,3 +1,4 @@
+import axios from 'axios';
 import React, { useState, createRef } from 'react';
 import {
     View,
@@ -47,38 +48,21 @@ export default function SignUpScreen(props) {
 
         setLoading(true);
         var dataToSend = {
-            id: id,
+            loginId: id,
             password: password,
-            name: userName,
+            nickname: userName,
             email: userEmail,
         };
-        var formBody = [];
-        for (var key in dataToSend) {
-            var encodedKey = encodeURIComponent(key);
-            var encodedValue = encodeURIComponent(dataToSend[key]);
-            formBody.push(encodedKey + '=' + encodedValue);
-        }
-        formBody = formBody.join('&');
 
-        fetch('http://localhost:8080/member/sign-up', {
-            method: 'POST',
-            body: formBody,
-            headers: {
-                'Content-Type':
-                    'application/x-www-form-urlencoded;charset=UTF-8',
-            },
-        })
-            .then((response) => response.json())
-            .then((responseJson) => {
+        axios.post('/member/sign-up', dataToSend)
+            .then((response) => {
                 setLoading(false);
-                console.log(responseJson);
-                if (responseJson.status === 'success') {
+                // 서버로부터 받은 응답을 처리합니다.
+                if (response.data.status === 'success') {
                     setIsRegistraionSuccess(true);
-                    console.log(
-                        'Registration Successful. Please Login to proceed'
-                    );
+                    console.log('Registration Successful. Please Login to proceed');
                 } else {
-                    setErrortext(responseJson.msg);
+                    setErrortext(response.data.msg);
                 }
             })
             .catch((error) => {
