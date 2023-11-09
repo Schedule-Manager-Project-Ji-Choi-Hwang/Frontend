@@ -25,14 +25,17 @@ export default function LoginScreen({ navigation }) {
             return;
         }
         setLoading(true);
-        let dataToSend = { id: id, password: password };
+        let dataToSend = { loginId: id, password: password };
 
-        axios.post('/member/log-in', dataToSend)
+        axios.post('http://localhost:8080/member/log-in', dataToSend)
             .then((response) => {
+                // console.log(response.data.data.id);
+                console.log(response);
+                // console.log(response.headers['Refresh-Token'])
                 setLoading(false);
                 // 서버로부터 받은 응답을 처리합니다.
-                if (response.data.status === 'success') {
-                    AsyncStorage.setItem('id', response.data.data.id);
+                if (response.status === 200) {
+                    // AsyncStorage.setItem('AccessToken', response.);
                     navigation.replace('Navigation');
                 } else {
                     setErrortext(response.data.msg);

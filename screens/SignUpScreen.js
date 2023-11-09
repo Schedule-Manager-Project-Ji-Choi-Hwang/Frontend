@@ -3,6 +3,7 @@ import React, { useState, createRef } from 'react';
 import {
     View,
     Text,
+    Image,
     Keyboard,
     TouchableWithoutFeedback,
     StyleSheet
@@ -54,11 +55,12 @@ export default function SignUpScreen(props) {
             email: userEmail,
         };
 
-        axios.post('/member/sign-up', dataToSend)
+        axios.post('http://localhost:8080/member/sign-up', dataToSend)
             .then((response) => {
                 setLoading(false);
+                console.log(response.data);
                 // 서버로부터 받은 응답을 처리합니다.
-                if (response.data.status === 'success') {
+                if (response.data === '회원가입 성공') {
                     setIsRegistraionSuccess(true);
                     console.log('Registration Successful. Please Login to proceed');
                 } else {
@@ -72,28 +74,20 @@ export default function SignUpScreen(props) {
     };
     if (isRegistraionSuccess) {
         return (
-            <View
-                style={{
-                    flex: 1,
-                    backgroundColor: '#307ecc',
-                    justifyContent: 'center',
-                }}>
+            <View style={Styles.successView}>
                 <Image
                     source={require('../assets/favicon.png')}
-                    style={{
-                        height: 150,
-                        resizeMode: 'contain',
-                        alignSelf: 'center'
-                    }}
+                    style={Styles.successImage}
                 />
-                <Text>
+                <Text style={Styles.successText}>
                     회원가입 성공
                 </Text>
-                <TouchableOpacity
+                <Button
+                    style={Styles.successButton}
                     activeOpacity={0.5}
                     onPress={() => props.navigation.navigate('SignInScreen')}>
                     <Text>로그인</Text>
-                </TouchableOpacity>
+                </Button>
             </View>
         );
     }
@@ -182,5 +176,24 @@ const Styles = StyleSheet.create({
         color: '#FFFFFF',
         paddingVertical: 10,
         fontSize: 16,
+    },
+    successView: {
+        flex: 1,
+        backgroundColor: '#307ecc',
+        justifyContent: 'center'
+    },
+    successImage: {
+        height: 150,
+        resizeMode: 'contain',
+        alignSelf: 'center'
+    },
+    successText: {
+        marginBottom: '80%',
+        textAlign: 'center',
+        color: 'white'
+    },
+    successButton: {
+        alignItems: 'center',
+        marginBottom: '50%'
     }
 })
