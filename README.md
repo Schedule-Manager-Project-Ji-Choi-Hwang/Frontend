@@ -9,6 +9,7 @@
     npm install @react-navigation/stack
     npm install @react-navigation/bottom-tabs
     npm install @react-native-async-storage/async-storage
+    npm install --save react-native-calendars
 
     
 Google Play 또는 Apple store에서 Expo Go 설치
