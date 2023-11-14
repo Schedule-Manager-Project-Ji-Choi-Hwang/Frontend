@@ -1,6 +1,7 @@
 import React from 'react';
 import SignInScreen from './screens/SignInScreen';
 import SignUpScreen from './screens/SignUpScreen';
+import SplashScreen from './screens/SplashScreen';
 import Navigation from './screens/Navigation';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
@@ -20,7 +21,8 @@ function Auth() {
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRoutName="SignInScreen">
+      <Stack.Navigator initialRoutName="SplashScreen">
+        <Stack.Screen name="SplashScreen" component={SplashScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Auth" component={Auth} options={{ headerShown: false }} />
         <Stack.Screen name="Navigation" component={Navigation} options={{ headerShown: false }} />
       </Stack.Navigator>
