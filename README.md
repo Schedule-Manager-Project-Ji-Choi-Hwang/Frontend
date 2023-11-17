@@ -10,6 +10,7 @@
     npm install @react-navigation/bottom-tabs
     npm install @react-native-async-storage/async-storage
     npm install --save react-native-calendars
+    npm i @expo/vector-icons
 
     
 Google Play 또는 Apple store에서 Expo Go를 설치하세요.
