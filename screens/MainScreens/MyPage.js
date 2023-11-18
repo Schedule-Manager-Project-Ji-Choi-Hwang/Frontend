@@ -65,17 +65,17 @@ export default function MyPage() {
                             {
                                 icon: 'plus',
                                 label: '개인 일정',
-                                onPress: () => console.log('Personal Schedule')
+                                onPress: () => { setModalVisible(true) }
                             },
                             {
                                 icon: 'plus',
                                 label: '개인 공부',
-                                onPress: () => console.log('Peronal Study')
+                                onPress: () => { setModalVisible(true) }
                             },
                             {
                                 icon: 'plus',
                                 label: '스터디 일정',
-                                onPress: () => console.log("Group Study")
+                                onPress: () => { setModalVisible(true) }
                             }
                         ]}
                         onStateChange={onFABStateChange}
