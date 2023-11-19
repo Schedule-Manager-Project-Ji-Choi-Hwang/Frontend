@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
     View,
     Modal,
@@ -6,15 +6,25 @@ import {
     Pressable,
     StyleSheet,
 } from "react-native";
-import { Calendar } from 'react-native-calendars';
+import { Calendar } from "react-native-calendars";
 import { Ionicons } from "@expo/vector-icons";
-import { FAB, Portal, Provider } from 'react-native-paper';
+import { FAB, Portal, Provider, TextInput } from "react-native-paper";
+import { DatePickerModal } from 'react-native-paper-dates';
 
 export default function MyPage() {
 
     const [selected, setSelected] = useState('');
-    const [modalVisible, setModalVisible] = useState(false);
+    const [scheduleModal, setScheduleModal] = useState(false);
+    const [studyModal, setStudyModal] = useState(false);
+    const [groupStudyModal, setGroupStudyModal] = useState(false);
     const [FABStatus, setFABStatus] = useState(false);
+    const [scheduleTitle, setScheduleTitle] = useState('');
+    const [studyTitle, setStudyTitle] = useState('');
+    const [groupStudyTitle, setGroupStudyTitle] = useState('');
+    const [date, setDate] = useState(undefined);
+    const [range, setRange] = useState({ startDate: undefined, endDate: undefined});
+    const [openSingle, setOpenSingle] = useState(false);
+    const [openRange, setOpenRange] = useState(false);
 
     const renderArrow = (direction) => {
         return (
@@ -27,6 +37,34 @@ export default function MyPage() {
     }
 
     const onFABStateChange = ({ open }) => setFABStatus(open);
+
+    // registerTranslation('ko', ko);
+
+    const onDismissSingle = useCallback(() => {
+        setOpenSingle(false);
+    }, [setOpenSingle]);
+
+    const onDismissRange = useCallback(() => {
+        setOpenRange(false);
+    }, [setOpenRange]);
+
+    const onConfirmSingle = useCallback(
+        (params) => {
+            setOpenSingle(false);
+            setDate(params.date);
+        },
+        [setOpenSingle, setDate],
+        console.log(date)
+    );
+
+    const onConfirmRange = useCallback(
+        ({startDate, endDate}) => {
+            setOpenRange(false);
+            setRange({ startDate, endDate });
+        },
+        [setOpenRange, setRange],
+        console.log(range)
+    )
 
     return (
         <Provider>
@@ -45,13 +83,84 @@ export default function MyPage() {
                     />
                     <Modal
                         animationType="fade"
-                        visible={modalVisible}
+                        visible={scheduleModal}
                         transparent={true}
                     >
                         <View style={Styles.modalMainView}>
                             <View style={Styles.modalView}>
-                                <Text style={Styles.modalText}>Test</Text>
-                                <Pressable onPress={() => { setModalVisible(false) }}>
+                                <TextInput
+                                    style={Styles.modalInput}
+                                    value={scheduleTitle}
+                                    placeholder="제목"
+                                    textColor="black"
+                                    mode="outlined"
+                                    onChangeText={scheduleTitle => setScheduleTitle(scheduleTitle)}
+                                />
+                                <Pressable onPress={() => setOpenSingle(true)}>
+                                    <Text style={Styles.modalText}>Select single date</Text>
+                                </Pressable>
+                                <DatePickerModal
+                                    locale='ko'
+                                    mode='single'
+                                    visible={openSingle}
+                                    onDismiss={onDismissSingle}
+                                    date={date}
+                                    onConfirm={onConfirmSingle}
+                                />
+                                <Pressable onPress={() => setOpenRange(true)}>
+                                    <Text style={Styles.modalText}>Select range date</Text>
+                                </Pressable>
+                                <DatePickerModal
+                                    locale='ko'
+                                    mode='range'
+                                    visible={openRange}
+                                    onDismiss={onDismissRange}
+                                    onConfirm={onConfirmRange}
+                                    startDate={range.startDate}
+                                    endDate={range.endDate}
+                                    saveLabel="Save"
+                                />
+                                <Pressable onPress={() => { setScheduleModal(false) }}>
+                                    <Text style={Styles.textStyle}>close</Text>
+                                </Pressable>
+                            </View>
+                        </View>
+                    </Modal>
+                    <Modal
+                        animationType="fade"
+                        visible={studyModal}
+                        transparent={true}
+                    >
+                        <View style={Styles.modalMainView}>
+                            <View style={Styles.modalView}>
+                                <Text style={Styles.modalText}>StudyModal</Text>
+                                <TextInput
+                                    value={studyTitle}
+                                    placeholder="제목"
+                                    mode="outlined"
+                                    onChangeText={studyTitle => setStudyTitle(studyTitle)}
+                                />
+                                <Pressable onPress={() => { setStudyModal(false) }}>
+                                    <Text style={Styles.textStyle}>close</Text>
+                                </Pressable>
+                            </View>
+                        </View>
+                    </Modal>
+                    <Modal
+                        animationType="fade"
+                        visible={groupStudyModal}
+                        transparent={true}
+                    >
+                        <View style={Styles.modalMainView}>
+                            <View style={Styles.modalView}>
+                                <Text style={Styles.modalText}>GroupStudyModal</Text>
+                                <TextInput
+                                    value={groupStudyTitle}
+                                    placeholder="제목"
+                                    mode="outlined"
+                                    onChangeText={groupStudyTitle => setGroupStudyTitle(groupStudyTitle)}
+                                />
+                                <Pressable onPress={() => { setGroupStudyModal(false) }}>
                                     <Text style={Styles.textStyle}>close</Text>
                                 </Pressable>
                             </View>
@@ -60,22 +169,22 @@ export default function MyPage() {
                     <FAB.Group
                         open={FABStatus}
                         visible
-                        icon={FABStatus ? 'calendar' : 'plus'}
+                        icon={FABStatus ? 'close' : 'plus'}
                         actions={[
                             {
-                                icon: 'plus',
+                                icon: 'calendar-edit',
                                 label: '개인 일정',
-                                onPress: () => { setModalVisible(true) }
+                                onPress: () => { setScheduleModal(true) }
                             },
                             {
-                                icon: 'plus',
+                                icon: 'book-open-variant',
                                 label: '개인 공부',
-                                onPress: () => { setModalVisible(true) }
+                                onPress: () => { setStudyModal(true) }
                             },
                             {
-                                icon: 'plus',
+                                icon: 'account-group',
                                 label: '스터디 일정',
-                                onPress: () => { setModalVisible(true) }
+                                onPress: () => { setGroupStudyModal(true) }
                             }
                         ]}
                         onStateChange={onFABStateChange}
@@ -126,6 +235,11 @@ const Styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 5,
     },
+    modalInput: {
+        marginBottom: 10,
+        backgroundColor: 'white',
+        color: 'black'
+    },
     modalText: {
         marginBottom: 15,
         textAlign: 'center',
@@ -135,4 +249,8 @@ const Styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
     },
+    datePicker: {
+        width: '60%',
+
+    }
 })
