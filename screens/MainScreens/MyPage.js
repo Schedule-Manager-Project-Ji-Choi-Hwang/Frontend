@@ -6,16 +6,17 @@ import {
     Pressable,
     StyleSheet,
 } from "react-native";
-import { Calendar, CalendarList } from "react-native-calendars";
-import { Ionicons } from "@expo/vector-icons";
-import { Button, FAB, Portal, Provider, TextInput, RadioButton } from "react-native-paper";
+import { CalendarList } from "react-native-calendars";
+import { Button, FAB, Portal, Provider, TextInput, RadioButton, Card } from "react-native-paper";
 import { DatePickerModal, registerTranslation } from 'react-native-paper-dates';
 
 export default function MyPage() {
 
+    const today = new Date();
+
     const [selected, setSelected] = useState('');
-    const [scheduleModal, setScheduleModal] = useState(false);
-    // const [studyModal, setStudyModal] = useState(false);
+    const [scheduleCardModal, setScheduleCardModal] = useState(false);
+    const [scheduleAddModal, setScheduleAddModal] = useState(false);
     const [groupStudyModal, setGroupStudyModal] = useState(false);
     const [FABStatus, setFABStatus] = useState(false);
     const [scheduleTitle, setScheduleTitle] = useState('');
@@ -26,16 +27,6 @@ export default function MyPage() {
     const [checked, setChecked] = useState('first');
     const [openSingle, setOpenSingle] = useState(false);
     const [openRange, setOpenRange] = useState(false);
-
-    const renderArrow = (direction) => {
-        return (
-            <Ionicons
-                name={direction === 'left' ? 'arrow-back' : 'arrow-forward'}
-                size={24}
-                color="grey"
-            />
-        )
-    }
 
     const onFABStateChange = ({ open }) => setFABStatus(open);
 
@@ -88,12 +79,13 @@ export default function MyPage() {
                 <View style={Styles.container}>
                     <CalendarList
                         style={Styles.calendar}
-                        current={date}
+                        current={today}
                         pastScrollRange={24}
                         futureScrollRange={24}
                         onDayPress={(day) => {
                             setSelected(day.dateString);
                             console.log('selected day', day);
+                            setScheduleCardModal('true')
                         }}
                         markedDates={{
                             [selected]: { selected: true, disableTouchEvent: true, selectedDotColor: 'orange' }
@@ -101,7 +93,20 @@ export default function MyPage() {
                     />
                     <Modal
                         animationType="fade"
-                        visible={scheduleModal}
+                        visible={scheduleCardModal}
+                        transparent={true}
+                    >
+                        <View style={Styles.modalMainView}>
+                            <View style={Styles.cardModalView}>
+                                <Text style={{fontSize: "30px"}}>{selected}</Text>
+                                <Text>TEST</Text>
+                                <Button onPress={() => { setScheduleCardModal(false) }}>close</Button>
+                            </View>
+                        </View>
+                    </Modal>
+                    <Modal
+                        animationType="fade"
+                        visible={scheduleAddModal}
                         transparent={true}
                     >
                         <View style={Styles.modalMainView}>
@@ -120,11 +125,11 @@ export default function MyPage() {
                                     onPress={() => setChecked('first')}
                                 />
                                 <Text
-                                    style={Styles.AddcheduleBtn}
+                                    style={Styles.addScheduleBtn}
                                     onPress={() => setOpenSingle(true)}
                                 >Select single date</Text>
                                 <DatePickerModal
-                                style={Styles.datePicker}
+                                    style={Styles.datePicker}
                                     locale="ko"
                                     mode='single'
                                     visible={openSingle}
@@ -139,7 +144,7 @@ export default function MyPage() {
                                     onPress={() => setChecked('second')}
                                 />
                                 <Text
-                                    style={Styles.AddcheduleBtn}
+                                    style={Styles.addScheduleBtn}
                                     onPress={() => setOpenRange(true)}
                                 >Select range date</Text>
                                 <DatePickerModal
@@ -151,7 +156,7 @@ export default function MyPage() {
                                     startDate={range.startDate}
                                     endDate={range.endDate}
                                 />
-                                <Pressable onPress={() => { setScheduleModal(false) }}>
+                                <Pressable onPress={() => { setScheduleAddModal(false) }}>
                                     <Text style={Styles.textStyle}>close</Text>
                                 </Pressable>
                             </View>
@@ -173,7 +178,7 @@ export default function MyPage() {
                                     onChangeText={groupStudyTitle => setGroupStudyTitle(groupStudyTitle)}
                                 />
                                 <Button
-                                    style={Styles.AddcheduleBtn}
+                                    style={Styles.addScheduleBtn}
                                     onPress={() => setOpenSingle(true)}
                                 >Select single date</Button>
                                 <DatePickerModal
@@ -185,7 +190,7 @@ export default function MyPage() {
                                     onConfirm={onConfirmSingle}
                                 />
                                 <Button
-                                    style={Styles.AddcheduleBtn}
+                                    style={Styles.addScheduleBtn}
                                     onPress={() => setOpenRange(true)}
                                 >Select range date</Button>
                                 <DatePickerModal
@@ -212,7 +217,7 @@ export default function MyPage() {
                                 label: '개인 일정',
                                 onPress: () => {
                                     if (FABStatus) {
-                                        setScheduleModal(true);
+                                        setScheduleAddModal(true);
                                     }
                                 }
                             },
@@ -257,6 +262,15 @@ const Styles = StyleSheet.create({
         height: '100%',
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
+    cardModalView: {
+        flex: 1,
+        justifyContent: 'space-between',
+        margin: 20,
+        marginTop: '10%',
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 25,
+    },
     modalView: {
         margin: 20,
         marginTop: '40%',
@@ -283,7 +297,7 @@ const Styles = StyleSheet.create({
     datePicker: {
         backgroundColor: 'white'
     },
-    AddcheduleBtn: {
+    addScheduleBtn: {
         flexDirection: 'column',
         alignItems: 'flex-start',
         marginBottom: 15,
