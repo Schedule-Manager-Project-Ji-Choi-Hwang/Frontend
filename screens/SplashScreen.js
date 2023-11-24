@@ -12,13 +12,14 @@ export default function SplashScreen() {
     useEffect(() => {
       setTimeout(() => {
         setAnimating(false);
-        AsyncStorage.getItem('id').then((value) =>
-          navigation.replace(value === null ? 'Auth' : 'Navigation'),
-        )
-        .catch(error => {
-            console.error("Error fetching 'id' from AsyncStorage:", error);
-        });
-      }, 5000);
+        navigation.navigate('Navigation')
+        // AsyncStorage.getItem('id').then((value) =>
+        //   navigation.replace(value === null ? 'Auth' : 'Navigation'),
+        // )
+        // .catch(error => {
+        //     console.error("Error fetching 'id' from AsyncStorage:", error);
+        // });
+      }, 3000);
     }, []);
 
     return (
