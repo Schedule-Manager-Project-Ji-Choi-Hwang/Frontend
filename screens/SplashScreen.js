@@ -6,46 +6,48 @@ import { useNavigation } from "@react-navigation/native";
 
 export default function SplashScreen() {
 
-    const [animating, setAnimating] = useState(true);
-    const navigation = useNavigation();
+  const [animating, setAnimating] = useState(true);
+  const navigation = useNavigation();
+  // navigation.navigate('Navigation')
+  useEffect(() => {
+    setTimeout(() => {
+      setAnimating(false);
+      handleGetToken();
+    }, 2000);
+  }, []);
 
-    useEffect(() => {
-      setTimeout(() => {
-        setAnimating(false);
-        navigation.navigate('Navigation')
-        // AsyncStorage.getItem('id').then((value) =>
-        //   navigation.replace(value === null ? 'Auth' : 'Navigation'),
-        // )
-        // .catch(error => {
-        //     console.error("Error fetching 'id' from AsyncStorage:", error);
-        // });
-      }, 3000);
-    }, []);
+  const handleGetToken = async () => {
+    const dataToken = await AsyncStorage.getItem("AccessToken");
+    if (!dataToken) {
+      navigation.replace("Auth");
+    } else {
+      navigation.replace("Navigation");
+    }
+  }
 
-    return (
-        <View style={styles.container}>
-            <Image
-            source={require('../assets/splash.png')}
-            style={{width: '90%', resizeMode: 'contain', margin: 30}}
-            />
-            <ActivityIndicator
-            animating={animating}
-            size="large"
-            style={styles.activityIndicator}
-            />
-        </View>
-    );
+  return (
+    <View style={styles.container}>
+      <Image
+        source={require('../assets/splash.png')}
+        style={{ width: '90%', resizeMode: 'contain', margin: 30 }}
+      />
+      <ActivityIndicator
+        animating={animating}
+        size="large"
+        style={styles.activityIndicator}
+      />
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#307ecc',
-    },
-    activityIndicator: {
-      alignItems: 'center',
-      height: 80,
-    },
-  });
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#307ecc',
+  },
+  activityIndicator: {
+    alignItems: 'center'
+  },
+});
