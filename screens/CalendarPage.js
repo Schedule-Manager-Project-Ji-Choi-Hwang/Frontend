@@ -1,3 +1,4 @@
+import axios from "axios";
 import React, { useState, useCallback } from "react";
 import {
     View,
@@ -5,6 +6,7 @@ import {
     Text,
     Pressable,
     StyleSheet,
+    FlatList,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,16 +18,19 @@ import {
     TextInput,
     RadioButton,
     Card,
-    IconButton
 } from "react-native-paper";
 import { DatePickerModal, registerTranslation } from 'react-native-paper-dates';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Header from "./components/Header";
 
 export default function CalendarPage() {
 
     const today = new Date();
 
     const [selected, setSelected] = useState('');
+    const [events, setEvents] = useState([]);
     const [scheduleCardModal, setScheduleCardModal] = useState(false);
+    const [subjectAddModal, setSubjectAddModal] = useState(false);
     const [scheduleAddModal, setScheduleAddModal] = useState(false);
     const [groupStudyModal, setGroupStudyModal] = useState(false);
     const [FABStatus, setFABStatus] = useState(false);
@@ -37,6 +42,46 @@ export default function CalendarPage() {
     const [checked, setChecked] = useState('first');
     const [openSingle, setOpenSingle] = useState(false);
     const [openRange, setOpenRange] = useState(false);
+    const [markedDates, setMarkedDates] = useState({})
+
+    const fetchScheduleDate = async (date) => {
+        try {
+            const token = await AsyncStorage.getItem('AccessToken');
+            if (!token) {
+                console.log('No access token');
+                return null;
+            }
+            console.log('Token:', token);
+            const response = await axios.get(`http://localhost:8080/main?date=${date}`, {
+                headers: { Authorization: token }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching data: ', error);
+        }
+    }
+
+    const onDayPress = async (day) => {
+        setSelected(day.dateString);
+        try {
+            const dateData = await fetchScheduleDate(day.dateString);
+            console.log('data : ', dateData);
+            if (dateData && dateData.data) {
+                setEvents(dateData.data.map(i => i.schedules[0]));
+            }
+        } catch (error) {
+            console.error('error : ', error);
+        }
+    };
+
+    const renderScheduleCard = (items) => (
+        <Card key={items.scheduleId} style={Styles.card}>
+            <Card.Title title={items.scheduleName} />
+            <Card.Content>
+                <Text>{items.period}</Text>
+            </Card.Content>
+        </Card>
+    );
 
     const onFABStateChange = ({ open }) => setFABStatus(open);
 
@@ -97,103 +142,87 @@ export default function CalendarPage() {
         <Provider>
             <Portal>
                 <View style={Styles.container}>
-                    <View style={Styles.header}>
-                        <View style={{ flex: 3, justifyContent: 'center' }}>
-                            <Text style={Styles.headerTitle}>공부일정관리앱</Text>
-                        </View>
-                        <View style={{ flex: 1 }}></View>
-                        <IconButton
-                            style={Styles.settingBtn}
-                            icon="cog"
-                            iconColor="grey"
-                            size={25}
-                            onPress={() => { console.log('setting') }}
-                        />
-                    </View>
+                    <Header />
                     <Calendar
                         style={Styles.calendar}
+                        markingType={'multi-dot'}
                         renderArrow={renderArrow}
+                        onDayPress={onDayPress}
                         current={today}
-                        onDayPress={(day) => {
-                            setSelected(day.dateString);
-                            console.log('selected day', day);
-                            setScheduleCardModal('true')
-                        }}
                         markedDates={{
-                            [selected]: { selected: true, disableTouchEvent: true, selectedDotColor: 'orange' }
+                            ...markedDates,
+                            [selected]: {
+                                ...markedDates[selected],
+                                selected: true,
+                                selectedTextColor: 'orange',
+                                selectedColor: 'white',
+                            },
                         }}
                     />
-                    <Modal
+                    <FlatList
+                        data={events}
+                        renderItem={renderScheduleCard}
+                        keyExtractor={(items) => items.scheduleId.toString()}
+                        style={Styles.eventList}
+                    />
+                    {/* <Modal
                         animationType="fade"
-                        visible={scheduleCardModal}
+                        visible={subjectAddModal}
                         transparent={true}
                     >
                         <View style={Styles.modalMainView}>
-                            <View style={Styles.cardModalView}>
-                                <Text style={{ fontSize: '25px', fontWeight: 'bold', justifyContent: 'flex-start' }}>{selected}</Text>
-                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <View style={{
-                                        flex: 1,
-                                        height: 2,
-                                        marginTop: 10,
-                                        marginBottom: 10,
-                                        backgroundColor: 'black'
-                                    }} />
-                                </View>
-                                <View style={{ flex: 1, justifyContent: 'space-around' }}>
-                                    <Card mode="elevated" style={{ backgroundColor: 'grey' }}>
-                                        <View style={{ flexDirection: 'row' }}>
-                                            <View style={{ flex: 2, flexDorection: 'column' }}>
-                                                <Card.Title title="일정 1" style={{ flex: 1, fontSize: '30px', alignItems: 'center' }} />
-                                                <Card.Content style={{ flex: 2, alignItems: 'flex-start' }}>
-                                                    <Text style={{ color: 'white' }}>소제목1</Text>
-                                                    <Text style={{ color: 'white' }}>내용1</Text>
-                                                </Card.Content>
-                                            </View>
-                                            <Card.Actions style={{ flex: 1, flexDirection: 'column', alignItems: 'flex-end' }}>
-                                                <IconButton
-                                                    icon="pencil"
-                                                    size={20}
-                                                    onPress={() => { console.log("Edit 일정 1") }} />
-                                                <IconButton
-                                                    icon="delete"
-                                                    size={20}
-                                                    onPress={() => { console.log("Delete 일정 1") }} />
-                                            </Card.Actions>
-                                        </View>
-                                    </Card>
-                                    <Card mode="elevated" style={{ backgroundColor: 'grey' }}>
-                                        <View style={{ flexDirection: 'row' }}>
-                                            <View style={{ flex: 2, flexDorection: 'column' }}>
-                                                <Card.Title title="일정 2" style={{ flex: 1, fontSize: '30px', alignItems: 'center' }} />
-                                                <Card.Content style={{ flex: 2, alignItems: 'flex-start' }}>
-                                                    <Text style={{ color: 'white' }}>소제목2</Text>
-                                                    <Text style={{ color: 'white' }}>내용2</Text>
-                                                </Card.Content>
-                                            </View>
-                                            <Card.Actions style={{ flex: 1, flexDirection: 'column', alignItems: 'flex-end' }}>
-                                                <IconButton
-                                                    icon="pencil"
-                                                    size={20}
-                                                    onPress={() => { console.log("Edit 일정 2") }} />
-                                                <IconButton
-                                                    icon="delete"
-                                                    size={20}
-                                                    onPress={() => { console.log("Delete 일정 2") }} />
-                                            </Card.Actions>
-                                        </View>
-                                    </Card>
-                                </View>
-                                <Button
-                                    style={{ flex: 1, justifyContent: 'flex-end' }}
-                                    onPress={() => {
-                                        setScheduleCardModal(false);
-                                        console.log("Close Detail Schedule");
-                                    }}
-                                >close</Button>
+                            <View style={Styles.modalView}>
+                                <TextInput
+                                    style={Styles.modalInput}
+                                    value={subjectTitle}
+                                    placeholder="제목"
+                                    textColor="black"
+                                    mode="outlined"
+                                    onChangeText={scheduleTitle => setScheduleTitle(scheduleTitle)}
+                                />
+                                <RadioButton
+                                    value="first"
+                                    status={checked === 'first' ? 'checked' : 'unchecked'}
+                                    onPress={() => setChecked('first')}
+                                />
+                                <Text
+                                    style={Styles.addScheduleBtn}
+                                    onPress={() => setOpenSingle(true)}
+                                >Select single date</Text>
+                                <DatePickerModal
+                                    style={Styles.datePicker}
+                                    locale="ko"
+                                    mode='single'
+                                    visible={openSingle}
+                                    onDismiss={onDismissSingle}
+                                    date={date}
+                                    onConfirm={onConfirmSingle}
+                                    presentationStyle="page"
+                                />
+                                <RadioButton
+                                    value="second"
+                                    status={checked === 'second' ? 'checked' : 'unchecked'}
+                                    onPress={() => setChecked('second')}
+                                />
+                                <Text
+                                    style={Styles.addScheduleBtn}
+                                    onPress={() => setOpenRange(true)}
+                                >Select range date</Text>
+                                <DatePickerModal
+                                    locale="ko"
+                                    mode='range'
+                                    visible={openRange}
+                                    onDismiss={onDismissRange}
+                                    onConfirm={onConfirmRange}
+                                    startDate={range.startDate}
+                                    endDate={range.endDate}
+                                />
+                                <Pressable onPress={() => { setScheduleAddModal(false) }}>
+                                    <Text style={Styles.textStyle}>close</Text>
+                                </Pressable>
                             </View>
                         </View>
-                    </Modal>
+                    </Modal> */}
                     <Modal
                         animationType="fade"
                         visible={scheduleAddModal}
@@ -303,6 +332,15 @@ export default function CalendarPage() {
                         icon={FABStatus ? 'close' : 'plus'}
                         actions={[
                             {
+                                icon: '',
+                                label: '과목 등록',
+                                onPress: () => {
+                                    if (FABStatus) {
+                                        setScheduleAddModal(true);
+                                    }
+                                }
+                            },
+                            {
                                 icon: 'calendar-edit',
                                 label: '개인 일정',
                                 onPress: () => {
@@ -338,16 +376,6 @@ const Styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    header: {
-        flexDirection: 'row',
-        height: 45,
-        backgroundColor: 'white',
-        alignItems: 'center'
-    },
-    headerTitle: {
-        fontSize: 20,
-        textAlign: 'center'
-    },
     settingBtn: {
         flex: 1,
         alignItems: 'center',
@@ -355,6 +383,14 @@ const Styles = StyleSheet.create({
     },
     calendar: {
         width: '100%'
+    },
+    card: {
+        padding: 20,
+        marginVertical: 8,
+        marginHorizontal: 16,
+    },
+    scroll: {
+        marginHorizontal: 20
     },
     centeredView: {
         flex: 1,

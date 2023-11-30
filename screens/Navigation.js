@@ -1,9 +1,9 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-import CalendarPage from './MainScreens/CalendarPage';
-import ListPage from './MainScreens/ListPage';
-import RecruitPage from './MainScreens/RecruitPage';
+import CalendarPage from './CalendarPage';
+import ListPage from './ListPage';
+import RecruitPage from './RecruitPage';
 import { Icon } from 'react-native-paper';
 
 const Tab = createBottomTabNavigator();

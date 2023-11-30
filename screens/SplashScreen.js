@@ -8,7 +8,6 @@ export default function SplashScreen() {
 
   const [animating, setAnimating] = useState(true);
   const navigation = useNavigation();
-  // navigation.navigate('Navigation')
   useEffect(() => {
     setTimeout(() => {
       setAnimating(false);
@@ -21,7 +20,7 @@ export default function SplashScreen() {
     if (!dataToken) {
       navigation.replace("Auth");
     } else {
-      navigation.replace("Navigation");
+      navigation.replace("Auth");
     }
   }
 
