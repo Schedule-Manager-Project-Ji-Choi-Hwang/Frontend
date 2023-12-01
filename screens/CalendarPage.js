@@ -68,20 +68,22 @@ export default function CalendarPage() {
             console.log('data : ', dateData);
             if (dateData && dateData.data) {
                 setEvents(dateData.data.map(i => i.schedules[0]));
+                console.log(dateData.data[0].schedules[0].scheduleName);
             }
         } catch (error) {
             console.error('error : ', error);
         }
     };
 
-    const renderScheduleCard = (items) => (
-        <Card key={items.scheduleId} style={Styles.card}>
-            <Card.Title title={items.scheduleName} />
+    const renderScheduleCard = ({ item }) => (
+        <Card key={item.scheduleId} style={{ margin: 10 }}>
+            <Card.Title title={item.scheduleName} style={{color: 'white'}}/>
             <Card.Content>
-                <Text>{items.period}</Text>
+                <Text style={{color: 'white'}}>{item.period}</Text>
             </Card.Content>
         </Card>
     );
+    
 
     const onFABStateChange = ({ open }) => setFABStatus(open);
 
@@ -162,8 +164,7 @@ export default function CalendarPage() {
                     <FlatList
                         data={events}
                         renderItem={renderScheduleCard}
-                        keyExtractor={(items) => items.scheduleId.toString()}
-                        style={Styles.eventList}
+                        keyExtractor={(item, index) => item.scheduleId.toString() || index.toString()}
                     />
                     {/* <Modal
                         animationType="fade"
