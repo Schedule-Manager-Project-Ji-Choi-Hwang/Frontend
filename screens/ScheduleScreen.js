@@ -1,5 +1,4 @@
-import axios from "axios";
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
     View,
     Modal,
@@ -21,14 +20,17 @@ import {
 } from "react-native-paper";
 import { DatePickerModal, registerTranslation } from 'react-native-paper-dates';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 import Header from "./components/Header";
+import ScheduleCardModal from "./components/ScheduleCardModal";
 
-export default function CalendarPage() {
+export default function ScheduleScreen() {
 
     const today = new Date();
 
     const [selected, setSelected] = useState('');
     const [events, setEvents] = useState([]);
+    const [currentScheduleName, setCurrentScheduleName] = useState('');
     const [scheduleCardModal, setScheduleCardModal] = useState(false);
     const [subjectAddModal, setSubjectAddModal] = useState(false);
     const [scheduleAddModal, setScheduleAddModal] = useState(false);
@@ -51,7 +53,7 @@ export default function CalendarPage() {
                 console.log('No access token');
                 return null;
             }
-            console.log('Token:', token);
+            // console.log('Token:', token);
             const response = await axios.get(`http://localhost:8080/main?date=${date}`, {
                 headers: { Authorization: token }
             });
@@ -65,25 +67,48 @@ export default function CalendarPage() {
         setSelected(day.dateString);
         try {
             const dateData = await fetchScheduleDate(day.dateString);
-            console.log('data : ', dateData);
-            if (dateData && dateData.data) {
-                setEvents(dateData.data.map(i => i.schedules[0]));
-                console.log(dateData.data[0].schedules[0].scheduleName);
+            const a = dateData.data;
+            for (let i = 0; i <= a.length; i++) {
+                console.log("i : ", a[i]);
+                for (let j = 0; j <= i.length; j++) {
+                    console.log("j : ", j);
+                }
             }
+            // console.log(a);
+            // if (dateData && dateData.data) {
+            //     for (let i=0; i<=a.schedules.length; i++) {
+            //         console.log(dateData.data[0].schedules[i]);
+            //     }
+            //     setEvents(dateData.data.map(i => i.schedules[0]));
+            // }
+            // const dateData = await fetchScheduleDate(day.dateString);
+            // if (dateData && dateData.data) {
+            //     // for (let i = 0; i <= dateData.data.length; i++) {
+            //     const scheduleData = dateData.data[0].schedules;
+            //     scheduleData.map(schedule => setEvents(schedule));
+
+            //     // }
+            // }
+
         } catch (error) {
             console.error('error : ', error);
         }
     };
 
     const renderScheduleCard = ({ item }) => (
-        <Card key={item.scheduleId} style={{ margin: 10 }}>
-            <Card.Title title={item.scheduleName} style={{color: 'white'}}/>
-            <Card.Content>
-                <Text style={{color: 'white'}}>{item.period}</Text>
-            </Card.Content>
-        </Card>
+        <Pressable onPress={() => {
+            setCurrentScheduleName(item.scheduleName);
+            setScheduleCardModal(true);
+        }}>
+            <Card key={item.scheduleId} style={{ margin: 10 }}>
+                <Card.Title title={item.scheduleName} />
+                <Card.Content>
+                    <Text style={{ color: 'white' }}>{item.period}</Text>
+                </Card.Content>
+            </Card>
+        </Pressable>
     );
-    
+
 
     const onFABStateChange = ({ open }) => setFABStatus(open);
 
@@ -140,6 +165,10 @@ export default function CalendarPage() {
         [setOpenRange, setRange],
     )
 
+    useEffect(() => {
+        setSelected(today);
+    }, []);
+
     return (
         <Provider>
             <Portal>
@@ -165,7 +194,14 @@ export default function CalendarPage() {
                         data={events}
                         renderItem={renderScheduleCard}
                         keyExtractor={(item, index) => item.scheduleId.toString() || index.toString()}
+                        contentContainerStyle={{ flexGrow: 1, }}
                     />
+                    <ScheduleCardModal
+                        visible={scheduleCardModal}
+                        onClose={() => setScheduleCardModal(false)}
+                        scheduleName={currentScheduleName}
+                    />
+
                     {/* <Modal
                         animationType="fade"
                         visible={subjectAddModal}
@@ -333,11 +369,11 @@ export default function CalendarPage() {
                         icon={FABStatus ? 'close' : 'plus'}
                         actions={[
                             {
-                                icon: '',
+                                icon: 'book-plus',
                                 label: '과목 등록',
                                 onPress: () => {
                                     if (FABStatus) {
-                                        setScheduleAddModal(true);
+                                        naviagion.replace("AddSubjectPage");
                                     }
                                 }
                             },
@@ -376,11 +412,6 @@ export default function CalendarPage() {
 const Styles = StyleSheet.create({
     container: {
         flex: 1,
-    },
-    settingBtn: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'flex-end'
     },
     calendar: {
         width: '100%'

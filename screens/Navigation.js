@@ -1,19 +1,19 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-import CalendarPage from './CalendarPage';
-import ListPage from './ListPage';
-import RecruitPage from './RecruitPage';
+import ScheduleScreen from './ScheduleScreen';
+import ListScreen from './ListScreen';
+import GatherScreen from './GatherScreen';
 import { Icon } from 'react-native-paper';
 
 const Tab = createBottomTabNavigator();
 
 function BottomStack() {
     return (
-        <Tab.Navigator initialRouteName='Calendar'>
+        <Tab.Navigator initialRouteName='Schedule'>
             <Tab.Screen
                 name="List"
-                component={ListPage}
+                component={ListScreen}
                 options={{
                     headerShown: false,
                     tabBarIcon: ({ color, size }) => (
@@ -22,8 +22,8 @@ function BottomStack() {
                 }}
             />
             <Tab.Screen
-                name="Calendar"
-                component={CalendarPage}
+                name="Schedule"
+                component={ScheduleScreen}
                 options={{
                     headerShown: false,
                     tabBarIcon: ({ color, size }) => (
@@ -32,7 +32,7 @@ function BottomStack() {
                 }} />
             <Tab.Screen
                 name="Bulletin Board"
-                component={RecruitPage}
+                component={GatherScreen}
                 options={{
                     headerShown: false,
                     tabBarIcon: ({ color, size }) => (

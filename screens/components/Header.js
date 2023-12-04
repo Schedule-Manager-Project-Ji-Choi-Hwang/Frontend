@@ -10,7 +10,6 @@ const Header = () => {
       </View>
       <View style={{ flex: 1 }}></View>
       <IconButton
-        style={Styles.settingBtn}
         icon="cog"
         iconColor="grey"
         size={25}

@@ -18,9 +18,9 @@ export default function SplashScreen() {
   const handleGetToken = async () => {
     const dataToken = await AsyncStorage.getItem("AccessToken");
     if (!dataToken) {
-      navigation.replace("Auth");
+      navigation.navigate("Auth");
     } else {
-      navigation.replace("Auth");
+      navigation.navigate("Auth");
     }
   }
 

@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { IconButton } from "react-native-paper";
 
-export default function RecruitPage() {
+export default function GatherScreen() {
     return (
         <View style={Styles.container}>
             <View style={Styles.header}>
