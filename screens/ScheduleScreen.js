@@ -53,7 +53,6 @@ export default function ScheduleScreen() {
                 console.log('No access token');
                 return null;
             }
-            // console.log('Token:', token);
             const response = await axios.get(`http://localhost:8080/main?date=${date}`, {
                 headers: { Authorization: token }
             });
@@ -67,29 +66,17 @@ export default function ScheduleScreen() {
         setSelected(day.dateString);
         try {
             const dateData = await fetchScheduleDate(day.dateString);
+            const scheduleArray = [];
             const a = dateData.data;
-            for (let i = 0; i <= a.length; i++) {
-                console.log("i : ", a[i]);
-                for (let j = 0; j <= i.length; j++) {
-                    console.log("j : ", j);
+            for (let i = 0; i < a.length; i++) {
+                const b = a[i];
+                const c = b.studySchedules;
+                for (let j = 0; j < c.length; j++) {
+                    scheduleArray.push(c[j]);
+                    console.log(c[j]);
+                    setEvents(scheduleArray);
                 }
             }
-            // console.log(a);
-            // if (dateData && dateData.data) {
-            //     for (let i=0; i<=a.schedules.length; i++) {
-            //         console.log(dateData.data[0].schedules[i]);
-            //     }
-            //     setEvents(dateData.data.map(i => i.schedules[0]));
-            // }
-            // const dateData = await fetchScheduleDate(day.dateString);
-            // if (dateData && dateData.data) {
-            //     // for (let i = 0; i <= dateData.data.length; i++) {
-            //     const scheduleData = dateData.data[0].schedules;
-            //     scheduleData.map(schedule => setEvents(schedule));
-
-            //     // }
-            // }
-
         } catch (error) {
             console.error('error : ', error);
         }
@@ -100,7 +87,7 @@ export default function ScheduleScreen() {
             setCurrentScheduleName(item.scheduleName);
             setScheduleCardModal(true);
         }}>
-            <Card key={item.scheduleId} style={{ margin: 10 }}>
+            <Card key={item.studyScheduleId} style={{ margin: 10 }}>
                 <Card.Title title={item.scheduleName} />
                 <Card.Content>
                     <Text style={{ color: 'white' }}>{item.period}</Text>
@@ -193,7 +180,7 @@ export default function ScheduleScreen() {
                     <FlatList
                         data={events}
                         renderItem={renderScheduleCard}
-                        keyExtractor={(item, index) => item.scheduleId.toString() || index.toString()}
+                        keyExtractor={(item, index) => item.studyScheduleId.toString() || index.toString()}
                         contentContainerStyle={{ flexGrow: 1, }}
                     />
                     <ScheduleCardModal
