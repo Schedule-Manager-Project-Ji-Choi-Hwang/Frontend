@@ -27,7 +27,6 @@
     "react-dom": "^18.2.0",
     "react-native": "0.72.6",
     "react-native-calendars": "^1.1302.0",
-    "react-native-date-picker": "^4.3.3",
     "react-native-gesture-handler": "~2.12.0",
     "react-native-get-random-values": "~1.9.0",
     "react-native-modal-datetime-picker": "^17.1.0",
@@ -40,7 +39,8 @@
     "react-native-uuid": "^2.0.1",
     "react-native-vector-icons": "^10.0.0",
     "react-native-web": "~0.19.6",
-    "react-navigation": "^5.0.0"
+    "react-navigation": "^5.0.0",
+    "expo-localization": "~14.3.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

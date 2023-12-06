@@ -31,6 +31,7 @@ export default function ScheduleScreen() {
     const [selected, setSelected] = useState('');
     const [events, setEvents] = useState([]);
     const [currentScheduleName, setCurrentScheduleName] = useState('');
+    const [selectedPeriod, setSelectedPeriod] = useState('');
     const [scheduleCardModal, setScheduleCardModal] = useState(false);
     const [subjectAddModal, setSubjectAddModal] = useState(false);
     const [scheduleAddModal, setScheduleAddModal] = useState(false);
@@ -67,13 +68,12 @@ export default function ScheduleScreen() {
         try {
             const dateData = await fetchScheduleDate(day.dateString);
             const scheduleArray = [];
-            const a = dateData.data;
-            for (let i = 0; i < a.length; i++) {
-                const b = a[i];
-                const c = b.studySchedules;
-                for (let j = 0; j < c.length; j++) {
-                    scheduleArray.push(c[j]);
-                    console.log(c[j]);
+            const subjectList = dateData.data;
+            for (let i = 0; i < subjectList.length; i++) {
+                const schedules = subjectList[i];
+                const dailySchedule = schedules.studySchedules;
+                for (let j = 0; j < dailySchedule.length; j++) {
+                    scheduleArray.push(dailySchedule[j]);
                     setEvents(scheduleArray);
                 }
             }
@@ -86,6 +86,7 @@ export default function ScheduleScreen() {
         <Pressable onPress={() => {
             setCurrentScheduleName(item.scheduleName);
             setScheduleCardModal(true);
+            setSelectedPeriod(item.period);
         }}>
             <Card key={item.studyScheduleId} style={{ margin: 10 }}>
                 <Card.Title title={item.scheduleName} />
@@ -187,6 +188,7 @@ export default function ScheduleScreen() {
                         visible={scheduleCardModal}
                         onClose={() => setScheduleCardModal(false)}
                         scheduleName={currentScheduleName}
+                        period={selectedPeriod}
                     />
 
                     {/* <Modal
