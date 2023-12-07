@@ -11,62 +11,46 @@ import {
 } from "react-native-paper";
 import { DatePickerModal } from 'react-native-paper-dates';
 
+const formatDate = (date) => {
+    if (!date) return '';
+
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+};
+
 const ScheduleCardModal = ({ visible, onClose, scheduleName, period }) => {
+
     const [editTitle, setEditTitle] = useState(scheduleName);
-    const [editDate, setEditDate] = useState();
+    const [editDate, setEditDate] = useState(formatDate(new Date(period)));
 
-    // const [date, setDate] = useState(undefined);
-    // const [open, setOpen] = useState(false);
-
-    // const onDismissSingle = React.useCallback(() => {
-    //     setOpen(false);
-    // }, [setOpen]);
-
-    // const onConfirmSingle = React.useCallback(
-    //     (params) => {
-    //         setOpen(false);
-    //         setDate(params.date);
-    //     },
-    //     [setOpen, setDate]
-    // );
+    const [open, setOpen] = useState(false);
 
     useEffect(() => {
         setEditTitle(scheduleName);
-        setEditDate(period);
+        setEditDate(formatDate(new Date(period)));
     }, [scheduleName, period]);
+
+    const parseDate = (dateStr) => { //객체로 변환 : 문자열을 분리하여 객체로
+        const [year, month, day] = dateStr.split('-').map(Number);
+        return new Date(year, month - 1, day);
+    };
 
     const handleTitleEdit = (text) => {
         setEditTitle(text);
     };
 
     const handleClose = () => {
-        setEditTitle(scheduleName);
-        setEditDate(period);
-        console.log("Close")
         onClose();
     }
 
     const handleSave = () => {
-        console.log("Save");
+        console.log("Saved Title:", editTitle);
+        console.log("Saved Date:", editDate);
         onClose();
     }
-
-    // const changeDate = () => {
-    //     return (
-    //         <DatePickerModal
-    //             locale="en"
-    //             mode="single"
-    //             visible={open}
-    //             onDismiss={onDismissSingle}
-    //             date={date}
-    //             onConfirm={onConfirmSingle}
-    //         />
-    //     )
-    // }
-
-    // 함수 선언 : 세이브 버튼 누를 때만 내용 모달창의 내용이 유지되도록 X 누르면 초기화
-
-    // save 한 후 화면 리다이렉트
 
     return (
         <Modal
@@ -90,7 +74,23 @@ const ScheduleCardModal = ({ visible, onClose, scheduleName, period }) => {
                             value={editTitle}
                             onChangeText={handleTitleEdit}
                         />
-                        <Button mode='outlined' title="Open" onPress={() => console.log("change-date")}>{period}</Button>
+                        <Button mode='outlined' onPress={() => setOpen(true)}>
+                            {editDate}
+                        </Button>
+                        <DatePickerModal
+                            animationType="slide"
+                            locale="en"
+                            mode="single"
+                            visible={open}
+                            onDismiss={() => setOpen(false)}
+                            date={parseDate(editDate)}
+                            presentationStyle='formSheet'
+                            onConfirm={(params) => {
+                                setOpen(false);
+                                setEditDate(formatDate(params.date));
+                                console.log(editDate)
+                            }}
+                        />
                     </View>
                     <Button mode='contained' onPress={handleSave}>Save</Button>
                     <Button mode='contained' onPress={() => console.log("Delete")}>Delete</Button>

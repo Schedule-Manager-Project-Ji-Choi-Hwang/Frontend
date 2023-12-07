@@ -152,11 +152,7 @@ export default function ScheduleScreen() {
         },
         [setOpenRange, setRange],
     )
-
-    useEffect(() => {
-        setSelected(today);
-    }, []);
-
+    
     return (
         <Provider>
             <Portal>
