@@ -31,7 +31,8 @@ export default function ScheduleScreen() {
     const [selected, setSelected] = useState('');
     const [events, setEvents] = useState([]);
     const [currentScheduleName, setCurrentScheduleName] = useState('');
-    const [selectedPeriod, setSelectedPeriod] = useState('');
+    const [currenPeriod, setCurrentPeriod] = useState('');
+    const [currenScheduleId, setCurrenScheduleId] = useState('');
     const [scheduleCardModal, setScheduleCardModal] = useState(false);
     const [subjectAddModal, setSubjectAddModal] = useState(false);
     const [scheduleAddModal, setScheduleAddModal] = useState(false);
@@ -84,9 +85,13 @@ export default function ScheduleScreen() {
 
     const renderScheduleCard = ({ item }) => (
         <Pressable onPress={() => {
-            setCurrentScheduleName(item.scheduleName);
             setScheduleCardModal(true);
-            setSelectedPeriod(item.period);
+            setCurrentScheduleName(item.scheduleName);
+            setCurrentPeriod(item.period);
+            setCurrenScheduleId(item.studyScheduleId);
+            console.log("id : ", item.studyScheduleId);
+            console.log("title : ", item.scheduleName);
+            console.log("date : ", item.period);
         }}>
             <Card key={item.studyScheduleId} style={{ margin: 10 }}>
                 <Card.Title title={item.scheduleName} />
@@ -184,7 +189,8 @@ export default function ScheduleScreen() {
                         visible={scheduleCardModal}
                         onClose={() => setScheduleCardModal(false)}
                         scheduleName={currentScheduleName}
-                        period={selectedPeriod}
+                        period={currenPeriod}
+                        id={currenScheduleId}
                     />
 
                     {/* <Modal

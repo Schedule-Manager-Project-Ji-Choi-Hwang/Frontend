@@ -1,3 +1,4 @@
+import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import {
     View,
@@ -21,10 +22,11 @@ const formatDate = (date) => {
     return `${year}-${month}-${day}`;
 };
 
-const ScheduleCardModal = ({ visible, onClose, scheduleName, period }) => {
+const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period, id }) => {
 
     const [editTitle, setEditTitle] = useState(scheduleName);
     const [editDate, setEditDate] = useState(formatDate(new Date(period)));
+    const [scheduleId, setScheduleId] = useState(id);
 
     const [open, setOpen] = useState(false);
 
@@ -33,7 +35,19 @@ const ScheduleCardModal = ({ visible, onClose, scheduleName, period }) => {
         setEditDate(formatDate(new Date(period)));
     }, [scheduleName, period]);
 
-    const parseDate = (dateStr) => { //객체로 변환 : 문자열을 분리하여 객체로
+    const updateSchedule = async (id) => {
+        try {
+            const response = await axios.patch(`http://localhost:8080/subjects/schedules/${id}/edit`, {
+                "scheduleName": editTitle,
+                "period": editDate,
+            });
+            return response.data
+        } catch (error) {
+            console.error('Error patching data: ', error);
+        }
+    }
+
+    const parseDate = (dateStr) => {
         const [year, month, day] = dateStr.split('-').map(Number);
         return new Date(year, month - 1, day);
     };
@@ -46,9 +60,11 @@ const ScheduleCardModal = ({ visible, onClose, scheduleName, period }) => {
         onClose();
     }
 
-    const handleSave = () => {
-        console.log("Saved Title:", editTitle);
-        console.log("Saved Date:", editDate);
+    const handleSave = async () => {
+        const data = await updateSchedule(scheduleId);
+        if (data) {
+            navigation.replace('Navigaion');
+        }
         onClose();
     }
 
@@ -88,7 +104,6 @@ const ScheduleCardModal = ({ visible, onClose, scheduleName, period }) => {
                             onConfirm={(params) => {
                                 setOpen(false);
                                 setEditDate(formatDate(params.date));
-                                console.log(editDate)
                             }}
                         />
                     </View>
