@@ -2,7 +2,7 @@ import React from "react";
 import { View, Modal, StyleSheet } from "react-native";
 
 const AddScheduleModal = ({ visible, onClose, scheduleTitle }) => {
-    const [title, setTitle] = useState('');
+    // const [title, setTitle] = useState('');
 
     const handleClose = () => {
         onClose();
@@ -14,74 +14,74 @@ const AddScheduleModal = ({ visible, onClose, scheduleTitle }) => {
             visible={visible}
             transparent={true}
         >
-            <View style={Styles.modalMainView}>
-                <View style={Styles.modalView}>
-                    <View style={Styles.modalHeader}>
-                        <IconButton
-                            icon="close"
-                            iconColor="grey"
-                            size={25}
-                            onPress={handleClose}
-                        />
-                    </View>
-                    <View>
-                        <TextInput
-                            style={Styles.modalInput}
-                            value={scheduleTitle}
-                            placeholder="일정 제목"
-                            textColor="black"
-                            mode="outlined"
-                            onChangeText={scheduleTitle => setTitle(scheduleTitle)}
-                        />
-                        <Button
-                            style={Styles.contentBtn}
-                            labelStyle={{ color: "grey", fontSize: 10 }}
-                            mode='outlined'
-                            onPress={() => setOpen(true)}
-                        >
-                            {startDate}
-                        </Button>
-                        <DatePickerModal
-                            animationType="slide"
-                            locale="en"
-                            mode="single"
-                            visible={open}
-                            onDismiss={() => setOpen(false)}
-                            date={parseDate(editDate)}
-                            presentationStyle='formSheet'
-                            onConfirm={(params) => {
-                                setOpen(false);
-                                setEditDate(formatDate(params.date));
-                            }}
-                        />
-                        <Text>~</Text>
-                        <Button
-                            style={Styles.contentBtn}
-                            labelStyle={{ color: "grey", fontSize: 10 }}
-                            mode='outlined'
-                            onPress={() => setOpen(true)}
-                        >
-                            {endDate}
-                        </Button>
-                        <DatePickerModal
-                            animationType="slide"
-                            locale="en"
-                            mode="single"
-                            visible={open}
-                            onDismiss={() => setOpen(false)}
-                            date={parseDate(editDate)}
-                            presentationStyle='formSheet'
-                            onConfirm={(params) => {
-                                setOpen(false);
-                                setEditDate(formatDate(params.date));
-                            }}
-                        />
-                    </View>
-                    <Pressable onPress={() => { setScheduleAddModal(false) }}>
-                        <Text style={Styles.textStyle}>close</Text>
-                    </Pressable>
-                </View>
-            </View>
+            {/*<View style={Styles.modalMainView}>*/}
+            {/*    <View style={Styles.modalView}>*/}
+            {/*        <View style={Styles.modalHeader}>*/}
+            {/*            <IconButton*/}
+            {/*                icon="close"*/}
+            {/*                iconColor="grey"*/}
+            {/*                size={25}*/}
+            {/*                onPress={handleClose}*/}
+            {/*            />*/}
+            {/*        </View>*/}
+            {/*        <View>*/}
+            {/*            <TextInput*/}
+            {/*                style={Styles.modalInput}*/}
+            {/*                value={scheduleTitle}*/}
+            {/*                placeholder="일정 제목"*/}
+            {/*                textColor="black"*/}
+            {/*                mode="outlined"*/}
+            {/*                onChangeText={scheduleTitle => setTitle(scheduleTitle)}*/}
+            {/*            />*/}
+            {/*            <Button*/}
+            {/*                style={Styles.contentBtn}*/}
+            {/*                labelStyle={{ color: "grey", fontSize: 10 }}*/}
+            {/*                mode='outlined'*/}
+            {/*                onPress={() => setOpen(true)}*/}
+            {/*            >*/}
+            {/*                {startDate}*/}
+            {/*            </Button>*/}
+            {/*            <DatePickerModal*/}
+            {/*                animationType="slide"*/}
+            {/*                locale="en"*/}
+            {/*                mode="single"*/}
+            {/*                visible={open}*/}
+            {/*                onDismiss={() => setOpen(false)}*/}
+            {/*                date={parseDate(editDate)}*/}
+            {/*                presentationStyle='formSheet'*/}
+            {/*                onConfirm={(params) => {*/}
+            {/*                    setOpen(false);*/}
+            {/*                    setEditDate(formatDate(params.date));*/}
+            {/*                }}*/}
+            {/*            />*/}
+            {/*            <Text>~</Text>*/}
+            {/*            <Button*/}
+            {/*                style={Styles.contentBtn}*/}
+            {/*                labelStyle={{ color: "grey", fontSize: 10 }}*/}
+            {/*                mode='outlined'*/}
+            {/*                onPress={() => setOpen(true)}*/}
+            {/*            >*/}
+            {/*                {endDate}*/}
+            {/*            </Button>*/}
+            {/*            <DatePickerModal*/}
+            {/*                animationType="slide"*/}
+            {/*                locale="en"*/}
+            {/*                mode="single"*/}
+            {/*                visible={open}*/}
+            {/*                onDismiss={() => setOpen(false)}*/}
+            {/*                date={parseDate(editDate)}*/}
+            {/*                presentationStyle='formSheet'*/}
+            {/*                onConfirm={(params) => {*/}
+            {/*                    setOpen(false);*/}
+            {/*                    setEditDate(formatDate(params.date));*/}
+            {/*                }}*/}
+            {/*            />*/}
+            {/*        </View>*/}
+            {/*        <Pressable onPress={() => { setScheduleAddModal(false) }}>*/}
+            {/*            <Text style={Styles.textStyle}>close</Text>*/}
+            {/*        </Pressable>*/}
+            {/*    </View>*/}
+            {/*</View>*/}
         </Modal >
     )
 }

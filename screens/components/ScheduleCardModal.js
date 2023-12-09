@@ -23,11 +23,11 @@ const formatDate = (date) => {
     return `${year}-${month}-${day}`;
 };
 
-const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period, scheduleId, subjectId }) => {
+const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
+                               scheduleId, subjectId, isPersonal, onScheduleEdit }) => { // isPersonal, 콜백함수 추가
 
     const [editTitle, setEditTitle] = useState(scheduleName);
     const [editDate, setEditDate] = useState(formatDate(new Date(period)));
-
     const [open, setOpen] = useState(false);
 
     useEffect(() => {
@@ -35,20 +35,65 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
         setEditDate(formatDate(new Date(period)));
     }, [scheduleName, period]);
 
-    const updateSchedule = async (scheduleId, subjectId) => {
+    // 개인 및 스터디를 구별하여 각각의 알맞은 경로로 수정 요청을 보내도록 수정
+    const updateSchedule = async (scheduleId, subjectId, isPersonal) => {
         try {
-            const token = await AsyncStorage.getItem('AccessToken');
-            if (!token) {
-                console.log('No access token');
-                return null;
+            if (isPersonal === true) { // 개인 과목의 일정인 경우
+                const token = await AsyncStorage.getItem('AccessToken');
+                if (!token) {
+                    console.log('No access token');
+                    return null;
+                }
+                const response = await axios.patch(`http://localhost:8080/subjects/${subjectId}/schedules/${scheduleId}/edit`, {
+                    scheduleName: editTitle,
+                    period: editDate
+                }, {
+                    headers: { Authorization: token }
+                });
+                return response;
+            } else { // 스터디 그룹의 일정인 경우
+                const token = await AsyncStorage.getItem('AccessToken');
+                if (!token) {
+                    console.log('No access token');
+                    return null;
+                }
+                const response = await axios.patch(`http://localhost:8080/study-board/${subjectId}/study-schedule/${scheduleId}/edit`, {
+                    scheduleName: editTitle,
+                    period: editDate
+                }, {
+                    headers: { Authorization: token }
+                });
+                return response;
             }
-            const response = await axios.patch(`http://localhost:8080/subjects/${subjectId}/schedules/${scheduleId}/edit`, {
-                studyScheduleName: editTitle,
-                period: editDate,
-            }, {
-                headers: { Authorization: token }
-            });
-            return response.data
+        } catch (error) {
+            console.error('Error patching data: ', error);
+        }
+    }
+
+    // 개인 및 스터디를 구별하여 각각의 알맞은 경로로 삭제 요청을 보내도록 추가
+    const deleteSchedule = async (scheduleId, subjectId, isPersonal) => {
+        try {
+            if (isPersonal === true) {
+                const token = await AsyncStorage.getItem('AccessToken');
+                if (!token) {
+                    console.log('No access token');
+                    return null;
+                }
+                const response = await axios.delete(`http://localhost:8080/subjects/${subjectId}/schedules/${scheduleId}/delete`,{
+                    headers: { Authorization: token }
+                });
+                return response;
+            } else {
+                const token = await AsyncStorage.getItem('AccessToken');
+                if (!token) {
+                    console.log('No access token');
+                    return null;
+                }
+                const response = await axios.delete(`http://localhost:8080/study-board/${subjectId}/study-schedule/${scheduleId}/delete`,{
+                    headers: { Authorization: token }
+                });
+                return response;
+            }
         } catch (error) {
             console.error('Error patching data: ', error);
         }
@@ -67,10 +112,22 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
         onClose();
     }
 
+    // 수정(save) 시 전달받은 콜백함수(화면 갱신) 코드가 실행되도록 변경
     const handleSave = async () => {
-        const data = await updateSchedule(scheduleId, subjectId);
+        const data = await updateSchedule(scheduleId, subjectId, isPersonal);
         if (data) {
-            navigation.replace('Navigaion');
+            // navigation.replace('Navigaion');
+            onScheduleEdit();
+        }
+        onClose();
+    }
+
+    // 삭제(delete) 시 전달받은 콜백함수(화면 갱신) 코드가 실행되도록 추가
+    const handleDelete = async () => {
+        const data = await deleteSchedule(scheduleId, subjectId, isPersonal);
+        if (data) {
+            // navigation.replace('Navigaion');
+            onScheduleEdit();
         }
         onClose();
     }
@@ -130,7 +187,7 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
                         <Button
                             style={{ flex: 1 }}
                             mode='contained'
-                            onPress={() => console.log("Delete")}
+                            onPress={handleDelete} // delete 버튼 클릭 시 해당 함수 실행
                         >
                             Delete</Button>
                     </View>
