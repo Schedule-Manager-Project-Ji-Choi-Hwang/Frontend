@@ -11,6 +11,7 @@ import {
     IconButton,
 } from "react-native-paper";
 import { DatePickerModal } from 'react-native-paper-dates';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const formatDate = (date) => {
     if (!date) return '';
@@ -22,11 +23,10 @@ const formatDate = (date) => {
     return `${year}-${month}-${day}`;
 };
 
-const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period, id }) => {
+const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period, scheduleId, subjectId }) => {
 
     const [editTitle, setEditTitle] = useState(scheduleName);
     const [editDate, setEditDate] = useState(formatDate(new Date(period)));
-    const [scheduleId, setScheduleId] = useState(id);
 
     const [open, setOpen] = useState(false);
 
@@ -35,11 +35,18 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
         setEditDate(formatDate(new Date(period)));
     }, [scheduleName, period]);
 
-    const updateSchedule = async (id) => {
+    const updateSchedule = async (scheduleId, subjectId) => {
         try {
-            const response = await axios.patch(`http://localhost:8080/subjects/schedules/${id}/edit`, {
-                "scheduleName": editTitle,
-                "period": editDate,
+            const token = await AsyncStorage.getItem('AccessToken');
+            if (!token) {
+                console.log('No access token');
+                return null;
+            }
+            const response = await axios.patch(`http://localhost:8080/subjects/${subjectId}/schedules/${scheduleId}/edit`, {
+                studyScheduleName: editTitle,
+                period: editDate,
+            }, {
+                headers: { Authorization: token }
             });
             return response.data
         } catch (error) {
@@ -47,8 +54,8 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
         }
     }
 
-    const parseDate = (dateStr) => {
-        const [year, month, day] = dateStr.split('-').map(Number);
+    const parseDate = (date) => {
+        const [year, month, day] = date.split('-').map(Number);
         return new Date(year, month - 1, day);
     };
 
@@ -61,7 +68,7 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
     }
 
     const handleSave = async () => {
-        const data = await updateSchedule(scheduleId);
+        const data = await updateSchedule(scheduleId, subjectId);
         if (data) {
             navigation.replace('Navigaion');
         }
@@ -85,12 +92,18 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
                             onPress={handleClose}
                         />
                     </View>
-                    <View>
+                    <View style={Styles.modalContent}>
                         <TextInput
+                            mode='outlined'
                             value={editTitle}
                             onChangeText={handleTitleEdit}
                         />
-                        <Button mode='outlined' onPress={() => setOpen(true)}>
+                        <Button
+                            style={Styles.contentBtn}
+                            labelStyle={{ color: "grey", fontSize: 20 }}
+                            mode='outlined'
+                            onPress={() => setOpen(true)}
+                        >
                             {editDate}
                         </Button>
                         <DatePickerModal
@@ -107,8 +120,20 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
                             }}
                         />
                     </View>
-                    <Button mode='contained' onPress={handleSave}>Save</Button>
-                    <Button mode='contained' onPress={() => console.log("Delete")}>Delete</Button>
+                    <View style={Styles.modalFooter}>
+                        <Button
+                            style={{ flex: 1 }}
+                            mode='contained'
+                            onPress={handleSave}
+                        >
+                            Save</Button>
+                        <Button
+                            style={{ flex: 1 }}
+                            mode='contained'
+                            onPress={() => console.log("Delete")}
+                        >
+                            Delete</Button>
+                    </View>
                 </View>
             </View>
         </Modal>
@@ -128,8 +153,7 @@ const Styles = StyleSheet.create({
         marginTop: '70%',
         backgroundColor: 'white',
         borderRadius: 20,
-        padding: 20,
-        alignItems: 'center',
+        padding: 15,
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
@@ -140,7 +164,17 @@ const Styles = StyleSheet.create({
         elevation: 5,
     },
     modalHeader: {
-        flexDirection: "row",
         alignItems: "flex-end",
+    },
+    modalContent: {
+    },
+    contentBtn: {
+        marginTop: 5
+    },
+    modalFooter: {
+        margin: 5,
+        justifyContent: "space-around",
+        flexDirection: "row",
+        alignItems: "stretch"
     }
 })

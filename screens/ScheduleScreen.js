@@ -23,6 +23,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import Header from "./components/Header";
 import ScheduleCardModal from "./components/ScheduleCardModal";
+import AddScheduleModal from "./components/AddScheduleModal";
 
 export default function ScheduleScreen() {
 
@@ -30,6 +31,7 @@ export default function ScheduleScreen() {
 
     const [selected, setSelected] = useState('');
     const [events, setEvents] = useState([]);
+    const [currentSubjectId, setCurrentSubjectId] = useState('');
     const [currentScheduleName, setCurrentScheduleName] = useState('');
     const [currenPeriod, setCurrentPeriod] = useState('');
     const [currenScheduleId, setCurrenScheduleId] = useState('');
@@ -72,12 +74,18 @@ export default function ScheduleScreen() {
             const subjectList = dateData.data;
             for (let i = 0; i < subjectList.length; i++) {
                 const schedules = subjectList[i];
+                console.log(schedules);
                 const dailySchedule = schedules.studySchedules;
                 for (let j = 0; j < dailySchedule.length; j++) {
-                    scheduleArray.push(dailySchedule[j]);
-                    setEvents(scheduleArray);
+                    const schedule = dailySchedule[j];
+                    console.log(dailySchedule[j]);
+                    scheduleArray.push({
+                        ...schedule,
+                        subjectId: schedules.studyPostId
+                    });
                 }
             }
+            setEvents(scheduleArray);
         } catch (error) {
             console.error('error : ', error);
         }
@@ -86,15 +94,13 @@ export default function ScheduleScreen() {
     const renderScheduleCard = ({ item }) => (
         <Pressable onPress={() => {
             setScheduleCardModal(true);
-            setCurrentScheduleName(item.scheduleName);
+            setCurrentSubjectId(item.subjectId);
+            setCurrentScheduleName(item.studyScheduleName);
             setCurrentPeriod(item.period);
             setCurrenScheduleId(item.studyScheduleId);
-            console.log("id : ", item.studyScheduleId);
-            console.log("title : ", item.scheduleName);
-            console.log("date : ", item.period);
         }}>
             <Card key={item.studyScheduleId} style={{ margin: 10 }}>
-                <Card.Title title={item.scheduleName} />
+                <Card.Title title={item.studyScheduleName} />
                 <Card.Content>
                     <Text style={{ color: 'white' }}>{item.period}</Text>
                 </Card.Content>
@@ -157,7 +163,7 @@ export default function ScheduleScreen() {
         },
         [setOpenRange, setRange],
     )
-    
+
     return (
         <Provider>
             <Portal>
@@ -190,125 +196,14 @@ export default function ScheduleScreen() {
                         onClose={() => setScheduleCardModal(false)}
                         scheduleName={currentScheduleName}
                         period={currenPeriod}
-                        id={currenScheduleId}
+                        scheduleId={currenScheduleId}
+                        subjectId={currentSubjectId}
                     />
-
-                    {/* <Modal
-                        animationType="fade"
-                        visible={subjectAddModal}
-                        transparent={true}
-                    >
-                        <View style={Styles.modalMainView}>
-                            <View style={Styles.modalView}>
-                                <TextInput
-                                    style={Styles.modalInput}
-                                    value={subjectTitle}
-                                    placeholder="제목"
-                                    textColor="black"
-                                    mode="outlined"
-                                    onChangeText={scheduleTitle => setScheduleTitle(scheduleTitle)}
-                                />
-                                <RadioButton
-                                    value="first"
-                                    status={checked === 'first' ? 'checked' : 'unchecked'}
-                                    onPress={() => setChecked('first')}
-                                />
-                                <Text
-                                    style={Styles.addScheduleBtn}
-                                    onPress={() => setOpenSingle(true)}
-                                >Select single date</Text>
-                                <DatePickerModal
-                                    style={Styles.datePicker}
-                                    locale="ko"
-                                    mode='single'
-                                    visible={openSingle}
-                                    onDismiss={onDismissSingle}
-                                    date={date}
-                                    onConfirm={onConfirmSingle}
-                                    presentationStyle="page"
-                                />
-                                <RadioButton
-                                    value="second"
-                                    status={checked === 'second' ? 'checked' : 'unchecked'}
-                                    onPress={() => setChecked('second')}
-                                />
-                                <Text
-                                    style={Styles.addScheduleBtn}
-                                    onPress={() => setOpenRange(true)}
-                                >Select range date</Text>
-                                <DatePickerModal
-                                    locale="ko"
-                                    mode='range'
-                                    visible={openRange}
-                                    onDismiss={onDismissRange}
-                                    onConfirm={onConfirmRange}
-                                    startDate={range.startDate}
-                                    endDate={range.endDate}
-                                />
-                                <Pressable onPress={() => { setScheduleAddModal(false) }}>
-                                    <Text style={Styles.textStyle}>close</Text>
-                                </Pressable>
-                            </View>
-                        </View>
-                    </Modal> */}
-                    <Modal
-                        animationType="fade"
+                    <AddScheduleModal
                         visible={scheduleAddModal}
-                        transparent={true}
-                    >
-                        <View style={Styles.modalMainView}>
-                            <View style={Styles.modalView}>
-                                <TextInput
-                                    style={Styles.modalInput}
-                                    value={scheduleTitle}
-                                    placeholder="제목"
-                                    textColor="black"
-                                    mode="outlined"
-                                    onChangeText={scheduleTitle => setScheduleTitle(scheduleTitle)}
-                                />
-                                <RadioButton
-                                    value="first"
-                                    status={checked === 'first' ? 'checked' : 'unchecked'}
-                                    onPress={() => setChecked('first')}
-                                />
-                                <Text
-                                    style={Styles.addScheduleBtn}
-                                    onPress={() => setOpenSingle(true)}
-                                >Select single date</Text>
-                                <DatePickerModal
-                                    style={Styles.datePicker}
-                                    locale="ko"
-                                    mode='single'
-                                    visible={openSingle}
-                                    onDismiss={onDismissSingle}
-                                    date={date}
-                                    onConfirm={onConfirmSingle}
-                                    presentationStyle="page"
-                                />
-                                <RadioButton
-                                    value="second"
-                                    status={checked === 'second' ? 'checked' : 'unchecked'}
-                                    onPress={() => setChecked('second')}
-                                />
-                                <Text
-                                    style={Styles.addScheduleBtn}
-                                    onPress={() => setOpenRange(true)}
-                                >Select range date</Text>
-                                <DatePickerModal
-                                    locale="ko"
-                                    mode='range'
-                                    visible={openRange}
-                                    onDismiss={onDismissRange}
-                                    onConfirm={onConfirmRange}
-                                    startDate={range.startDate}
-                                    endDate={range.endDate}
-                                />
-                                <Pressable onPress={() => { setScheduleAddModal(false) }}>
-                                    <Text style={Styles.textStyle}>close</Text>
-                                </Pressable>
-                            </View>
-                        </View>
-                    </Modal>
+                        scheduleTitle={scheduleTitle}
+                        onClose={() => setScheduleAddModal(false)}
+                    />
                     <Modal
                         animationType="fade"
                         visible={groupStudyModal}
