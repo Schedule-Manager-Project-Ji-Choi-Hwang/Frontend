@@ -1,15 +1,7 @@
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
-import {
-    View,
-    Modal,
-    StyleSheet
-} from "react-native";
-import {
-    Button,
-    TextInput,
-    IconButton,
-} from "react-native-paper";
+import { View, Modal, StyleSheet } from "react-native";
+import { Button, TextInput, IconButton, } from "react-native-paper";
 import { DatePickerModal } from 'react-native-paper-dates';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -24,7 +16,7 @@ const formatDate = (date) => {
 };
 
 const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
-                               scheduleId, subjectId, isPersonal, onScheduleEdit }) => { // isPersonal, 콜백함수 추가
+    scheduleId, subjectId, isPersonal, onScheduleEdit }) => { // isPersonal, 콜백함수 추가
 
     const [editTitle, setEditTitle] = useState(scheduleName);
     const [editDate, setEditDate] = useState(formatDate(new Date(period)));
@@ -79,7 +71,7 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
                     console.log('No access token');
                     return null;
                 }
-                const response = await axios.delete(`http://localhost:8080/subjects/${subjectId}/schedules/${scheduleId}/delete`,{
+                const response = await axios.delete(`http://localhost:8080/subjects/${subjectId}/schedules/${scheduleId}/delete`, {
                     headers: { Authorization: token }
                 });
                 return response;
@@ -89,7 +81,7 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
                     console.log('No access token');
                     return null;
                 }
-                const response = await axios.delete(`http://localhost:8080/study-board/${subjectId}/study-schedule/${scheduleId}/delete`,{
+                const response = await axios.delete(`http://localhost:8080/study-board/${subjectId}/study-schedule/${scheduleId}/delete`, {
                     headers: { Authorization: token }
                 });
                 return response;
@@ -170,7 +162,7 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
                             visible={open}
                             onDismiss={() => setOpen(false)}
                             date={parseDate(editDate)}
-                            presentationStyle='formSheet'
+                            // presentationStyle='formSheet'
                             onConfirm={(params) => {
                                 setOpen(false);
                                 setEditDate(formatDate(params.date));

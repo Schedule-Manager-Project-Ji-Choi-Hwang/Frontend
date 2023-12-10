@@ -161,7 +161,7 @@ export default function ScheduleScreen() {
             <Card key={item.scheduleId} style={{ margin: 10 }}>
                 <Card.Title title={item.scheduleName} />
                 <Card.Content>
-                    <Text style={{ color: 'black' }}>{item.period}</Text>
+                    <Text style={{ color: 'white' }}>{item.period}</Text>
                 </Card.Content>
             </Card>
         </Pressable>
