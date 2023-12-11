@@ -9,6 +9,7 @@ import {
     StyleSheet
 } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
+import Config from "../config/config";
 
 export default function SignUpScreen(props) {
 
@@ -55,7 +56,7 @@ export default function SignUpScreen(props) {
             email: userEmail,
         };
 
-        axios.post('http://localhost:8080/member/sign-up', dataToSend)
+        axios.post(`${Config.MY_IP}:8080/member/sign-up`, dataToSend)
             .then((response) => {
                 setLoading(false);
                 console.log(response.data);
