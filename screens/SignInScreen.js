@@ -3,6 +3,7 @@ import React, { useState, createRef } from 'react';
 import { View, Text, StyleSheet, Keyboard } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Config from "../config/config";
 
 export default function LoginScreen({ navigation }) {
 
@@ -30,7 +31,7 @@ export default function LoginScreen({ navigation }) {
             password: password
         };
 
-        axios.post('http://localhost:8080/member/log-in', dataToSend)
+        axios.post(`${Config.MY_IP}:8080/member/log-in`, dataToSend)
             .then((response) => {
                 console.log(response);
                 setLoading(false);

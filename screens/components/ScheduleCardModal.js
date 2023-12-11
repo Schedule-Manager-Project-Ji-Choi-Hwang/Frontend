@@ -4,6 +4,7 @@ import { View, Modal, StyleSheet } from "react-native";
 import { Button, TextInput, IconButton, } from "react-native-paper";
 import { DatePickerModal } from 'react-native-paper-dates';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Config from "../../config/config";
 
 const formatDate = (date) => {
     if (!date) return '';
@@ -36,7 +37,7 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
                     console.log('No access token');
                     return null;
                 }
-                const response = await axios.patch(`http://localhost:8080/subjects/${subjectId}/schedules/${scheduleId}/edit`, {
+                const response = await axios.patch(`${Config.MY_IP}:8080/subjects/${subjectId}/schedules/${scheduleId}/edit`, {
                     scheduleName: editTitle,
                     period: editDate
                 }, {
@@ -49,7 +50,7 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
                     console.log('No access token');
                     return null;
                 }
-                const response = await axios.patch(`http://localhost:8080/study-board/${subjectId}/study-schedule/${scheduleId}/edit`, {
+                const response = await axios.patch(`${Config.MY_IP}:8080/study-board/${subjectId}/study-schedule/${scheduleId}/edit`, {
                     scheduleName: editTitle,
                     period: editDate
                 }, {
@@ -71,7 +72,7 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
                     console.log('No access token');
                     return null;
                 }
-                const response = await axios.delete(`http://localhost:8080/subjects/${subjectId}/schedules/${scheduleId}/delete`, {
+                const response = await axios.delete(`${Config.MY_IP}:8080/subjects/${subjectId}/schedules/${scheduleId}/delete`, {
                     headers: { Authorization: token }
                 });
                 return response;
@@ -81,7 +82,7 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
                     console.log('No access token');
                     return null;
                 }
-                const response = await axios.delete(`http://localhost:8080/study-board/${subjectId}/study-schedule/${scheduleId}/delete`, {
+                const response = await axios.delete(`${Config.MY_IP}:8080/study-board/${subjectId}/study-schedule/${scheduleId}/delete`, {
                     headers: { Authorization: token }
                 });
                 return response;

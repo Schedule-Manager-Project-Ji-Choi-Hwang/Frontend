@@ -24,6 +24,7 @@ import axios from "axios";
 import Header from "./components/Header";
 import ScheduleCardModal from "./components/ScheduleCardModal";
 import AddScheduleModal from "./components/AddScheduleModal";
+import Config from "../config/config";
 
 export default function ScheduleScreen() {
 
@@ -82,7 +83,7 @@ export default function ScheduleScreen() {
                 console.log('No access token');
                 return null;
             }
-            const response = await axios.get(`http://localhost:8080/main?date=${date}`, {
+            const response = await axios.get(`${Config.MY_IP}:8080/main?date=${date}`, {
                 headers: { Authorization: token }
             });
             return response.data;
@@ -421,9 +422,6 @@ const Styles = StyleSheet.create({
         backgroundColor: 'white',
         color: 'black'
     },
-    datePicker: {
-        backgroundColor: 'white'
-    },
     addScheduleBtn: {
         flexDirection: 'column',
         alignItems: 'flex-start',
@@ -434,9 +432,5 @@ const Styles = StyleSheet.create({
         color: 'black',
         fontWeight: 'bold',
         textAlign: 'center',
-    },
-    datePicker: {
-        width: '60%',
-
     }
 })
