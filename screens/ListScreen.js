@@ -30,21 +30,35 @@ const StudyCard = ({ item, onLeave }) => {
         <Card style={{ margin: 10 }}>
             <Card.Title
                 title={item.studyName}
-                right={(props) => (
-                    <Menu
-                        visible={visible}
-                        onDismiss={closeMenu}
-                        anchor={
-                            <IconButton {...props} icon="dots-vertical" onPress={openMenu} />
-                        }>
-                        <Menu.Item onPress={() => { console.log('Edit'); }} title="편집" />
-                        <Menu.Item onPress={leaveStudy} title="탈퇴" />
-                    </Menu>
+                left={(props) => (
+                    item.authority === "LEADER" && (
+                        <IconButton icon="crown" size={20} color="gold" />
+                    )
                 )}
-            />
+                right={(props) => (
+                        <Menu
+                            visible={visible}
+                            onDismiss={closeMenu}
+                            anchor={
+                                <IconButton
+                                    {...props}
+                                    icon="dots-vertical"
+                                    onPress={openMenu}
+                                />
+                            }
+                        >
+                            <Menu.Item onPress={() => { console.log('Edit'); }} title="편집" />
+                            <Menu.Item onPress={leaveStudy} title="탈퇴" />
+                        </Menu>
+                )}
+            >
+
+            </Card.Title>
             <Card.Content>
-                <Text>스터디 분야 : {item.tag}</Text>
-                <Text>스터디 인원 : {item.currentMember}/{item.recruitMember}</Text>
+                <Text style={{ color: "white" }}>스터디 분야 : {item.tag}</Text>
+                <Text style={{ color: "white" }}>
+                    스터디 인원 : {item.currentMember}/{item.recruitMember}
+                </Text>
                 {/* 여기에 더 많은 스터디 정보를 추가할 수 있습니다. */}
             </Card.Content>
         </Card>
@@ -158,5 +172,4 @@ const Styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'flex-end'
     },
-
 })
