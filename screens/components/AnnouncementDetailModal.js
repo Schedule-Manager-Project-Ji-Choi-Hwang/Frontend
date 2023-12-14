@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { IconButton } from 'react-native-paper';
+import {Button, IconButton, TextInput} from 'react-native-paper';
 import axios from 'axios'; // axios 라이브러리 사용
 import Config from '../../config/config';
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Config 파일 또는 필요한 설정
@@ -8,6 +8,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage"; // Config 
 const AnnouncementDetailModal = ({ visible, onDismiss, announcement, studyPostId }) => {
     const [announcementData, setAnnouncementData] = useState({});
     const [commentData, setCommentData] = useState([]);
+    const [newComment, setNewComment] = useState("");
 
     useEffect(() => {
         if (visible) {
@@ -22,6 +23,21 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, studyPostId
             fetchData();
         }
     }, [visible, studyPostId]);
+
+    const submitComment = async () => {
+        try {
+            const token = await AsyncStorage.getItem('AccessToken');
+            await axios.post(`${Config.MY_IP}:8080/study-board/${studyPostId}/study-announcements/${announcement.announcementId}/comment/add`,
+                { comment: newComment },
+                { headers: { Authorization: token } }
+            );
+
+            setNewComment(""); // 입력 필드 초기화
+            fetchAnnouncementData(); // 댓글 목록 새로고침
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     const fetchAnnouncementData = async () => {
         try {
@@ -57,6 +73,15 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, studyPostId
                         <Text style={styles.createDate}>{announcementData.announcementCreateDate}</Text>
                         <View style={styles.announcementBox}>
                             <Text style={styles.content}>{announcementData.announcementPost}</Text>
+                        </View>
+                        <View style={styles.commentForm}>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="댓글을 입력해 주세요."
+                                value={newComment}
+                                onChangeText={setNewComment}
+                            />
+                            <Button onPress={submitComment} style={styles.submitButton} labelStyle={styles.submitButtonText}>등록</Button>
                         </View>
                         <ScrollView style={styles.commentsContainer}>
                             {commentData.map((comment, index) => (
@@ -167,7 +192,44 @@ const styles = StyleSheet.create({
         color: '#555',
         marginBottom: 5,
     },
-    // ... 기타 스타일 ...
+    commentForm: {
+        flexDirection: 'row',
+        padding: 10,
+        justifyContent: 'center', // 수평 방향으로 가운데 정렬
+        alignItems: 'center', // 수직 방향으로 가운데 정렬
+    },
+    input: {
+        flex: 1,
+        padding: 10,
+        borderWidth: 1,
+        borderColor: '#cccccc',
+        backgroundColor: '#ffffff',
+        // borderRadius: 20,
+        borderBottomLeftRadius: 15,
+        borderBottomRightRadius: 15,
+        borderTopLeftRadius: 15,
+        borderTopRightRadius: 15,
+        marginRight: 10,
+        height: 50, // 높이 설정
+        color: '#333333', // 텍스트 색상
+    },
+    submitButton: {
+        backgroundColor: '#4CAF50', // 버튼의 배경색
+        borderRadius: 10, // 모서리 둥글기
+        height: 70,
+        width: '10%',
+        justifyContent: 'center', // 버튼 내부 텍스트를 중앙에 위치
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 3,
+        shadowOpacity: 0.25,
+        elevation: 2,
+    },
+    submitButtonText: {
+        color: '#ffffff', // 버튼 텍스트 색상
+        fontSize: 15,
+    },
+
 });
 
 
