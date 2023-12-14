@@ -34,6 +34,7 @@ export default function ScheduleScreen() {
     const [currentScheduleName, setCurrentScheduleName] = useState('');
     const [currenPeriod, setCurrentPeriod] = useState('');
     const [currenScheduleId, setCurrenScheduleId] = useState('');
+    const [isPersonal, setIsPersonal] = useState(true) // 개인 일정 추가, 스터디 일정 추가 구분하기 위한 state
     const [currentIsPersonal, setCurrentIsPersonal] = useState(''); // 개인 일정, 스터디 일정 구분하기 위한 state
     const [scheduleCardModal, setScheduleCardModal] = useState(false);
     const [subjectAddModal, setSubjectAddModal] = useState(false);
@@ -274,6 +275,8 @@ export default function ScheduleScreen() {
                         visible={scheduleAddModal}
                         scheduleTitle={scheduleTitle}
                         onClose={() => setScheduleAddModal(false)}
+                        isPersonal={isPersonal}
+                        placeholder={"과목을 선택하세요."}
                     />
                     <Modal
                         animationType="fade"
