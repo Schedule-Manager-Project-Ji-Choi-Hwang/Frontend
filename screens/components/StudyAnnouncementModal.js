@@ -9,6 +9,7 @@ import AnnouncementDetailModal from "./AnnouncementDetailModal";
 const StudyModal = ({ visible, hideModal, studyData }) => {
     const [announcements, setAnnouncements] = useState([]);
     const [members, setMembers] = useState([]);
+    const [myAuthority, setMyAuthority] = useState(false);
     const [menuVisible, setMenuVisible] = useState({});
 
     const [announcementModalVisible, setAnnouncementModalVisible] = useState(false);
@@ -60,6 +61,7 @@ const StudyModal = ({ visible, hideModal, studyData }) => {
                 // 정상적인 응답을 받았을 때
                 setAnnouncements(response.data.data.announcementList);
                 setMembers(response.data.data.studyMemberList);
+                setMyAuthority(response.data.data.myAuthority);
             } else if (response.status === 400) {
                 // 서버가 400 상태 코드를 반환했을 때
                 setAnnouncements([]);
@@ -127,7 +129,7 @@ const StudyModal = ({ visible, hideModal, studyData }) => {
                                 <Card.Title
                                     title={member.nickname}
                                     right={(props) =>
-                                        member.authority === 'MEMBER' && (
+                                        member.authority === 'MEMBER' && myAuthority && (
                                             <Menu
                                                 visible={menuVisible[index]}
                                                 onDismiss={() => toggleMenuVisibility(index)}
