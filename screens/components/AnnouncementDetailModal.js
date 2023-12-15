@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import {Button, IconButton, TextInput} from 'react-native-paper';
+import {Button, IconButton, Menu, TextInput} from 'react-native-paper';
 import axios from 'axios'; // axios 라이브러리 사용
 import Config from '../../config/config';
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Config 파일 또는 필요한 설정
@@ -9,6 +9,18 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, studyPostId
     const [announcementData, setAnnouncementData] = useState({});
     const [commentData, setCommentData] = useState([]);
     const [newComment, setNewComment] = useState("");
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [editingCommentId, setEditingCommentId] = useState(null);
+    const [editedComment, setEditedComment] = useState("");
+
+    const [menuVisible, setMenuVisible] = useState(false);
+    const [selectedCommentId, setSelectedCommentId] = useState(null);
+    const [currentCommentId, setCurrentCommentId] = useState(null);
+
+
+    // console.log(editingCommentId);
+    console.log(currentCommentId)
 
     useEffect(() => {
         if (visible) {
@@ -34,6 +46,38 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, studyPostId
 
             setNewComment(""); // 입력 필드 초기화
             fetchAnnouncementData(); // 댓글 목록 새로고침
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    // 댓글 수정 함수
+    const submitEditComment = async (commentId) => {
+        try {
+            const token = await AsyncStorage.getItem('AccessToken');
+            await axios.patch(`${Config.MY_IP}:8080/study-board/study-announcements/${announcement.announcementId}/comment/${editingCommentId}/edit`,
+                { comment: editedComment },
+                { headers: { Authorization: token } }
+            );
+            // 댓글 목록 새로고침
+            fetchAnnouncementData();
+            // 수정 상태 종료
+            setIsEditing(false);
+            setEditingCommentId(null);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    // 댓글 삭제 함수
+    const deleteComment = async (commentId) => {
+        try {
+            const token = await AsyncStorage.getItem('AccessToken');
+            await axios.delete(`${Config.MY_IP}/study-announcements/${announcement.announcementId}/comment/${editingCommentId}/delete`, {
+                headers: { Authorization: token }
+            });
+            // 댓글 목록 새로고침
+            fetchAnnouncementData();
         } catch (error) {
             console.error(error);
         }
@@ -84,11 +128,54 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, studyPostId
                             <Button onPress={submitComment} style={styles.submitButton} labelStyle={styles.submitButtonText}>등록</Button>
                         </View>
                         <ScrollView style={styles.commentsContainer}>
-                            {commentData.map((comment, index) => (
-                                <View key={index} style={styles.comment}>
-                                    <Text style={styles.commentAuthor}>{comment.nickname}</Text>
-                                    <Text style={styles.commentCreateDate}>{comment.lastModifiedDate}</Text>
-                                    <Text style={styles.commentText}>{comment.comment}</Text>
+                            {commentData.map((comment) => (
+                                <View key={comment.commentId} style={styles.comment}>
+                                    <View style={styles.commentRow}>
+                                        <View style={styles.commentTextContainer}>
+                                            <Text style={styles.commentAuthor}>{comment.nickname}</Text>
+                                            <Text style={styles.commentCreateDate}>{comment.lastModifiedDate}</Text>
+                                            <Text style={styles.commentText}>{comment.comment}</Text>
+                                        </View>
+                                        <IconButton
+                                            icon="dots-vertical"
+                                            onPress={() => {
+                                                setMenuVisible(true);
+                                                setCurrentCommentId(comment.commentId);
+                                            }}
+                                        />
+                                        <Menu
+                                            visible={menuVisible && currentCommentId === comment.commentId}
+                                            onDismiss={() => setMenuVisible(false)}
+                                            anchor={
+                                                <View style={styles.menuAnchor} />
+                                            }>
+                                            <Menu.Item onPress={() => {
+                                                setIsEditing(true);
+                                                setEditingCommentId(comment.commentId);
+                                                setEditedComment(comment.comment);
+                                                setMenuVisible(false);
+                                            }} title="Edit" />
+                                            <Menu.Item onPress={() => {
+                                                deleteComment(comment.commentId);
+                                                setMenuVisible(false);
+                                            }} title="Delete" />
+                                        </Menu>
+                                    </View>
+                                    {/* 특정 댓글 바로 아래에 댓글 수정 폼 표시 */}
+                                    {isEditing && editingCommentId === comment.commentId && (
+                                        <View style={styles.editCommentForm}>
+                                            <TextInput
+                                                style={styles.input}
+                                                value={editedComment}
+                                                onChangeText={setEditedComment}
+                                            />
+                                            <Button
+                                                onPress={() => submitEditComment(comment.commentId)}
+                                            >
+                                                Update Comment
+                                            </Button>
+                                        </View>
+                                    )}
                                 </View>
                             ))}
                         </ScrollView>
@@ -175,6 +262,18 @@ const styles = StyleSheet.create({
         shadowRadius: 1.41,
         elevation: 2,
         position: 'relative', // 상대적 위치 설정
+    },
+    commentRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between', // 아이템들을 양 끝으로 정렬
+        alignItems: 'center', // 아이템들을 세로 방향으로 중앙 정렬
+    },
+    commentContentContainer: {
+        flexDirection: 'row', // 수평 방향으로 배열
+        alignItems: 'center', // 세로 중앙 정렬
+    },
+    commentTextContainer: {
+        flex: 1, // 대부분의 공간을 차지
     },
     commentAuthor: {
         fontWeight: 'bold',
