@@ -15,34 +15,59 @@ const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeho
     const [openEndDatePicker, setOpenEndDatePicker] = useState(false);
     const [period, setPeriod] = useState("");
     const [openList, setOpenList] = useState(false);
-    const [select, setSelect] = useState("");
+    const [select, setSelect] = useState(null);
     const [items, setItems] = useState([]);
     const [openDropDown, setOpenDropDown] = useState(false);
 
     const handleClose = () => {
         onClose();
+        setSelect(null);
+        setTitle('');
+        setPeriod("");
+        setStartDate("시작 날짜");
+        setEndDate("종료 날짜");
     }
 
     const handleAdd = () => {
         console.log("Add Schedule");
+        // let dataToSend = {
+        //     "scheduleName" : title,
+        //     "repeat" : period,
+
+        // }
     }
 
-    // const parseDate = (date) => {
-    //     const [year, month, day] = date.split('-').map(Number);
-    //     return new Date(year, month - 1, day);
-    // };
+    const handleStartDateConfirm = (params) => {
+        setOpenStartDatePicker(false);
+        const formattedDate = formatDate(params.date);
+        setStartDate(formattedDate);
+    }
 
-    // const formatDate = (date) => {
-    //     if (!date) return '';
+    const handleEndDateConfirm = (params) => {
+        setOpenEndDatePicker(false);
+        const formattedDate = formatDate(params.date);
+        setEndDate(formattedDate);
+    }
 
-    //     const year = date.getFullYear();
-    //     const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    //     const day = date.getDate().toString().padStart(2, '0');
+    const parseDate = (date) => {
+        if (date && date.includes('-')) {
+            const [year, month, day] = date.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        }
+        return new Date();
+    };
 
-    //     return `${year}-${month}-${day}`;
-    // };
+    const formatDate = (date) => {
+        if (!date) return '';
 
-    const setData = (data) => {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
+    };
+
+    const subjectData = (data) => {
         const formattedItems = data.map(subject => ({
             label: subject.subjectName,
             value: subject.subjectId
@@ -50,56 +75,52 @@ const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeho
         setItems(formattedItems);
     }
 
-    const fetchList = async () => {
+    const groupStudyData = (data) => {
+        const formattedItems = data.map(study => ({
+            label: study.studyPostName,
+            value: study.studyPostId
+        }));
+        setItems(formattedItems);
+    }
+
+    const fetchDataList = async () => {
+        if (!openDropDown) return;
         try {
-            const token = await AsyncStorage.getItem('AccessToken');
-            if (!token) {
-                console.log('No access token');
-                return null;
+            if (isPersonal === true) {
+                const token = await AsyncStorage.getItem('AccessToken');
+                if (!token) {
+                    console.log('No access token');
+                    return null;
+                }
+                const response = await axios.get(`${Config.MY_IP}:8080/subjects`, {
+                    headers: { Authorization: token }
+                });
+
+                if (response && response.data) {
+                    subjectData(response.data.data);
+                }
+            } else {
+                const token = await AsyncStorage.getItem('AccessToken');
+                if (!token) {
+                    console.log('No access token');
+                    return null;
+                }
+                const response = await axios.get(`${Config.MY_IP}:8080/my-study-board/name-list`, {
+                    headers: { Authorization: token }
+                });
+
+                if (response && response.data) {
+                    groupStudyData(response.data.data);
+                }
             }
-            const response = await axios.get(`${Config.MY_IP}:8080/subjects`, {
-                headers: { Authorization: token }
-            });
-
-            if (response && response.data) {
-                setData(response.data);
-            }
-            // if (isPersonal === true) {
-            //     const token = await AsyncStorage.getItem('AccessToken');
-            //     if (!token) {
-            //         console.log('No access token');
-            //         return null;
-            //     }
-            //     const response = await axios.get(`${Config.MY_IP}:8080/subjects`, {
-            //         headers: { Authorization: token }
-            //     });
-
-            //     if (response && response.data) {
-            //         setData(response.data);
-            //     }
-            // }
-            // } else {
-            //     const token = await AsyncStorage.getItem('AccessToken');
-            //     if (!token) {
-            //         console.log('No access token');
-            //         return null;
-            //     }
-            //     const response = await axios.get(`${Config.MY_IP}:8080/subjects`, {
-            //         headers: { Authorization: token }
-            //     });
-
-            //     if (response && response.data) {
-            //         setData(response.data);
-            //     }
-            // }
         } catch (error) {
             console.log(error)
         }
     }
 
     useEffect(() => {
-        fetchList();
-    }, []);
+        fetchDataList();
+    }, [openDropDown]);
 
     return (
         <Provider>
@@ -133,48 +154,39 @@ const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeho
                                         style={Styles.contentBtn}
                                         labelStyle={{ color: "grey", fontSize: 15 }}
                                         mode='outlined'
-                                        // onPress={() => setOpenStartDatePicker(true)}
-                                        onPress={() => console.log("setStartDate")}
+                                        onPress={() => setOpenStartDatePicker(true)}
+                                    // onPress={() => console.log("setStartDate")}
                                     >
                                         {startDate}
                                     </Button>
-                                    {/* <DatePickerModal
+                                    <DatePickerModal
                                         animationType="slide"
                                         locale="en"
                                         mode="single"
                                         visible={openStartDatePicker}
                                         onDismiss={() => setOpenStartDatePicker(false)}
                                         date={parseDate(startDate)}
-                                        onConfirm={(params) => {
-                                            setOpenStartDatePicker(false);
-                                            // setStartDate(formatDate(params.date));
-                                            setStartDate(params.date);
-                                        }}
-                                    /> */}
+                                        onConfirm={handleStartDateConfirm}
+                                    />
                                     <Text style={{ fontSize: 15, marginTop: 12, padding: 3 }}>~</Text>
                                     <Button
                                         style={Styles.contentBtn}
                                         labelStyle={{ color: "grey", fontSize: 15 }}
                                         mode='outlined'
-                                        // onPress={() => setOpenEndDatePicker(true)}
-                                        onPress={() => console.log("setEndDate")}
+                                        onPress={() => setOpenEndDatePicker(true)}
+                                    // onPress={() => console.log("setEndDate")}
                                     >
                                         {endDate}
                                     </Button>
-                                    {/* <DatePickerModal
-                                animationType="slide"
-                                locale="en"
-                                mode="single"
-                                visible={openEndDatePicker}
-                                onDismiss={() => setOpenEndDatePicker(false)}
-                                date={parseDate(endDate)}
-                                // presentationStyle='formSheet'
-                                onConfirm={(params) => {
-                                    setOpenEndDatePicker(false);
-                                    // setEndDate(formatDate(params.date));
-                                    setEndDate(params.date);
-                                }}
-                            /> */}
+                                    <DatePickerModal
+                                        animationType="slide"
+                                        locale="en"
+                                        mode="single"
+                                        visible={openEndDatePicker}
+                                        onDismiss={() => setOpenEndDatePicker(false)}
+                                        date={parseDate(endDate)}
+                                        onConfirm={handleEndDateConfirm}
+                                    />
                                 </View>
                                 <SegmentedButtons
                                     style={{ marginTop: 5 }}
@@ -200,7 +212,7 @@ const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeho
                                         style={Styles.dropDown}
                                         theme="LIGHT"
                                         open={openDropDown}
-                                        setOpen={() => setOpenDropDown(true)}
+                                        setOpen={setOpenDropDown}
                                         items={items}
                                         setItems={setItems}
                                         value={select}
