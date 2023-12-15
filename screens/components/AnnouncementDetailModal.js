@@ -91,11 +91,9 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, studyPostId
                     announcementPost : response.data.data.announcementPost,
                     announcementCreateDate : response.data.data.createDate
                 });
-                if (response.data.data.commentList.length === 0) {
-                    setCommentData([]);
-                } else {
-                    setCommentData(response.data.data.commentList);
-                }
+
+                setCommentData(response.data.data.commentList);
+
             }
         } catch (error) {
             console.error(error);
