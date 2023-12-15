@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import {Button, IconButton, Menu, TextInput} from 'react-native-paper';
+import {Button, Card, IconButton, Menu, TextInput} from 'react-native-paper';
 import axios from 'axios'; // axios 라이브러리 사용
 import Config from '../../config/config';
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Config 파일 또는 필요한 설정
@@ -14,13 +14,6 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, studyPostId
     const [editingCommentId, setEditingCommentId] = useState(null);
     const [editedComment, setEditedComment] = useState("");
 
-    const [menuVisible, setMenuVisible] = useState(false);
-    const [selectedCommentId, setSelectedCommentId] = useState(null);
-    const [currentCommentId, setCurrentCommentId] = useState(null);
-
-
-    // console.log(editingCommentId);
-    console.log(currentCommentId)
 
     useEffect(() => {
         if (visible) {
@@ -35,6 +28,7 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, studyPostId
             fetchData();
         }
     }, [visible, studyPostId]);
+
 
     const submitComment = async () => {
         try {
@@ -73,7 +67,7 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, studyPostId
     const deleteComment = async (commentId) => {
         try {
             const token = await AsyncStorage.getItem('AccessToken');
-            await axios.delete(`${Config.MY_IP}/study-announcements/${announcement.announcementId}/comment/${editingCommentId}/delete`, {
+            await axios.delete(`${Config.MY_IP}:8080/study-announcements/${announcement.announcementId}/comment/${commentId}/delete`, {
                 headers: { Authorization: token }
             });
             // 댓글 목록 새로고침
@@ -97,7 +91,11 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, studyPostId
                     announcementPost : response.data.data.announcementPost,
                     announcementCreateDate : response.data.data.createDate
                 });
-                setCommentData(response.data.data.commentList);
+                if (response.data.data.commentList.length === 0) {
+                    setCommentData([]);
+                } else {
+                    setCommentData(response.data.data.commentList);
+                }
             }
         } catch (error) {
             console.error(error);
@@ -105,7 +103,7 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, studyPostId
     };
 
     return (
-        <Modal visible={visible} onDismiss={onDismiss} transparent animationType="slide">
+        <Modal visible={visible} onDismiss={onDismiss} transparent animationType="slide" style={{zIndex: 1500}}>
             <View style={styles.modalContainer}>
                 <TouchableOpacity style={styles.closeButton} onPress={onDismiss}>
                     <IconButton icon="close" />
@@ -136,30 +134,20 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, studyPostId
                                             <Text style={styles.commentCreateDate}>{comment.lastModifiedDate}</Text>
                                             <Text style={styles.commentText}>{comment.comment}</Text>
                                         </View>
-                                        <IconButton
-                                            icon="dots-vertical"
-                                            onPress={() => {
-                                                setMenuVisible(true);
-                                                setCurrentCommentId(comment.commentId);
-                                            }}
-                                        />
-                                        <Menu
-                                            visible={menuVisible && currentCommentId === comment.commentId}
-                                            onDismiss={() => setMenuVisible(false)}
-                                            anchor={
-                                                <View style={styles.menuAnchor} />
-                                            }>
-                                            <Menu.Item onPress={() => {
-                                                setIsEditing(true);
-                                                setEditingCommentId(comment.commentId);
-                                                setEditedComment(comment.comment);
-                                                setMenuVisible(false);
-                                            }} title="Edit" />
-                                            <Menu.Item onPress={() => {
-                                                deleteComment(comment.commentId);
-                                                setMenuVisible(false);
-                                            }} title="Delete" />
-                                        </Menu>
+
+                                        {/* Edit 및 Delete 버튼 추가 */}
+                                        <View style={styles.commentActionButtons}>
+                                            <Button
+                                                onPress={() => {
+                                                    setIsEditing(true);
+                                                    setEditingCommentId(comment.commentId);
+                                                    setEditedComment(comment.comment);
+                                                }}
+                                            >Edit</Button>
+                                            <Button
+                                                onPress={() => deleteComment(comment.commentId)}
+                                            >Delete</Button>
+                                        </View>
                                     </View>
                                     {/* 특정 댓글 바로 아래에 댓글 수정 폼 표시 */}
                                     {isEditing && editingCommentId === comment.commentId && (
@@ -208,6 +196,7 @@ const styles = StyleSheet.create({
         shadowRadius: 3.84,
         elevation: 5,
         maxHeight: '90%', // 모달의 최대 높이를 화면 높이의 80%로 제한
+        // opacity: 0.5,
     },
     title: {
         fontSize: 22,
@@ -262,6 +251,11 @@ const styles = StyleSheet.create({
         shadowRadius: 1.41,
         elevation: 2,
         position: 'relative', // 상대적 위치 설정
+    },
+    commentActionButtons: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
     },
     commentRow: {
         flexDirection: 'row',
