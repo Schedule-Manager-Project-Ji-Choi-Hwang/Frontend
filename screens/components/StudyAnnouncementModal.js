@@ -5,6 +5,7 @@ import axios from 'axios';
 import Config from '../../config/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AnnouncementDetailModal from "./AnnouncementDetailModal";
+import AddAnnouncementModal from "./AddAnnouncementModal";
 
 const StudyModal = ({ visible, hideModal, studyData }) => {
     const [announcements, setAnnouncements] = useState([]);
@@ -14,6 +15,7 @@ const StudyModal = ({ visible, hideModal, studyData }) => {
 
     const [announcementModalVisible, setAnnouncementModalVisible] = useState(false);
     const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
+    const [addAnnouncementModalVisible, setAddAnnouncementModalVisible] = useState(false);
 
 
     useEffect(() => {
@@ -92,6 +94,16 @@ const StudyModal = ({ visible, hideModal, studyData }) => {
         await fetchAnnouncementsAndStudyMembers();
     };
 
+    // 공지사항 추가 모달을 여는 함수
+    const openAddAnnouncementModal = () => {
+        setAddAnnouncementModalVisible(true);
+    };
+
+    // 공지사항 추가 모달을 닫는 함수
+    const closeAddAnnouncementModal = () => {
+        setAddAnnouncementModalVisible(false);
+    };
+
     return (
         <Portal>
             <Modal visible={visible} onDismiss={hideModal} contentContainerStyle={styles.modalContainer}>
@@ -108,7 +120,14 @@ const StudyModal = ({ visible, hideModal, studyData }) => {
                         <View style={{ flex: 1 }}></View>
                     </View>
                     <View style={styles.modalView}>
-                        <Text style={styles.sectionTitle}>공지사항</Text>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Text style={styles.sectionTitle}>공지사항</Text>
+                            <IconButton
+                                icon="plus"
+                                size={24}
+                                onPress={openAddAnnouncementModal}
+                            />
+                        </View>
                         <View style={styles.separator} />
                         {/* 공지 목록을 카드 형태로 표시 */}
                         {announcements.map((announcement, index) => (
@@ -154,6 +173,14 @@ const StudyModal = ({ visible, hideModal, studyData }) => {
                     </View>
                 </ScrollView>
             </Modal>
+            {addAnnouncementModalVisible && (
+                <AddAnnouncementModal
+                    visible={addAnnouncementModalVisible}
+                    onDismiss={closeAddAnnouncementModal}
+                    updateAnnouncement={updateAnnouncement}
+                    studyData={studyData}
+                />
+            )}
             {/* 새로운 AnnouncementModal 컴포넌트 추가 */}
             <AnnouncementDetailModal
                 visible={announcementModalVisible}
