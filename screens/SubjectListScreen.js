@@ -5,10 +5,12 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Header from "./components/Header";
 import Config from "../config/config";
+import SubjectModal from "./components/SubjectModal";
 
 const SubjectListScreen = () => {
     const [items, setItems] = useState([]);
     const [selectedSubject, setSelectSubject] = useState(null);
+    const [addModal, setAddModal] = useState(false);
 
     useEffect(() => {
         fetchSubjectData();
@@ -97,8 +99,12 @@ const SubjectListScreen = () => {
                             style={Styles.contentIcon}
                             icon="plus"
                             iconColor="black"
-                            size={35}
-                            onPress={() => console.log("Add Subject")}
+                            size={25}
+                            onPress={() => setAddModal(true)}
+                        />
+                        <SubjectModal 
+                            visible={addModal}
+                            onClose={() => setAddModal(false)}
                         />
                     </View>
                     <Divider
@@ -134,7 +140,7 @@ const Styles = StyleSheet.create({
     },
     contentText: {
         flex: 2,
-        fontSize: 28,
+        fontSize: 25,
         fontWeight: "bold",
         textAlign: "center"
     },
