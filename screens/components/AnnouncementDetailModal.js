@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import {View, Text, Modal, StyleSheet, TouchableOpacity, ScrollView, Alert} from 'react-native';
 import {Button, Card, IconButton, Menu, TextInput} from 'react-native-paper';
 import axios from 'axios'; // axios 라이브러리 사용
 import Config from '../../config/config';
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Config 파일 또는 필요한 설정
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const AnnouncementDetailModal = ({ visible, onDismiss, announcement, studyPostId }) => {
+const AnnouncementDetailModal = ({ visible, onDismiss, announcement, updateAnnouncement, studyPostId }) => {
     const [announcementData, setAnnouncementData] = useState({});
     const [commentData, setCommentData] = useState([]);
     const [newComment, setNewComment] = useState("");
@@ -13,6 +13,9 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, studyPostId
     const [isEditing, setIsEditing] = useState(false);
     const [editingCommentId, setEditingCommentId] = useState(null);
     const [editedComment, setEditedComment] = useState("");
+
+    const [isEditingPost, setIsEditingPost] = useState(false);
+    const [editedPost, setEditedPost] = useState(announcementData.announcementPost || "");
 
 
     useEffect(() => {
@@ -29,6 +32,42 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, studyPostId
         }
     }, [visible, studyPostId]);
 
+
+
+
+    const submitPostEdit = async () => {
+        try {
+            const token = await AsyncStorage.getItem('AccessToken');
+            await axios.patch(`${Config.MY_IP}:8080/study-board/${studyPostId}/study-announcements/${announcement.announcementId}/edit`,
+                { announcementPost: editedPost },
+                { headers: { Authorization: token } }
+            );
+
+            setIsEditingPost(false);
+            setAnnouncementData({ ...announcementData, announcementPost: editedPost });
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const deleteAnnouncement = async () => {
+        try {
+            const token = await AsyncStorage.getItem('AccessToken');
+            await axios.delete(`${Config.MY_IP}:8080/study-board/${studyPostId}/study-announcements/${announcement.announcementId}/delete`,
+                { headers: { Authorization: token } }
+            );
+
+            // 삭제 후 처리 로직
+            onDismiss(); // 예를 들어 모달을 닫는 동작
+        } catch (error) {
+            console.error("Delete Error:", error);
+        }
+    };
+
+    const handleDelete = async () => {
+        await deleteAnnouncement();
+        await updateAnnouncement();
+    };
 
     const submitComment = async () => {
         try {
@@ -108,11 +147,37 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, studyPostId
                 </TouchableOpacity>
                 {announcementData.announcementTitle && (
                     <>
-                        <Text style={styles.title}>{announcementData.announcementTitle}</Text>
+                        <View style={styles.titleContainer}>
+                            <Text style={styles.title}>{announcementData.announcementTitle}</Text>
+                            <IconButton
+                                icon="pencil"
+                                onPress={() => {
+                                    setEditedPost(announcementData.announcementPost);
+                                    setIsEditingPost(true);
+                                }}
+                            />
+
+                            <IconButton
+                                icon="delete"
+                                onPress={handleDelete}
+                            />
+                        </View>
                         <View style={styles.separator} />
                         <Text style={styles.createDate}>{announcementData.announcementCreateDate}</Text>
                         <View style={styles.announcementBox}>
-                            <Text style={styles.content}>{announcementData.announcementPost}</Text>
+                            {isEditingPost ? (
+                                <View style={styles.postEditContainer}>
+                                    <TextInput
+                                        style={styles.postInput}
+                                        multiline
+                                        value={editedPost}
+                                        onChangeText={setEditedPost}
+                                    />
+                                    <Button onPress={submitPostEdit}>Save Changes</Button>
+                                </View>
+                            ) : (
+                                <Text style={styles.content}>{announcementData.announcementPost}</Text>
+                            )}
                         </View>
                         <View style={styles.commentForm}>
                             <TextInput
@@ -320,7 +385,26 @@ const styles = StyleSheet.create({
         color: '#ffffff', // 버튼 텍스트 색상
         fontSize: 15,
     },
-
+    postEditContainer: {
+        width: '100%', // 전체 너비를 사용
+        padding: 10, // 주변 여백
+        backgroundColor: '#f8f8f8', // 연한 배경색
+        borderRadius: 5, // 모서리 둥글게
+        shadowColor: '#000', // 그림자 색상
+        shadowOffset: { width: 0, height: 2 }, // 그림자 위치
+        shadowOpacity: 0.1, // 그림자 투명도
+        shadowRadius: 3, // 그림자 둥글기
+        elevation: 4, // 안드로이드에서 그림자 효과
+        marginBottom: 10, // 아래쪽 여백
+    },
+    postInput: {
+        flex: 1,
+        // 추가적인 스타일링
+    },
+    titleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
 });
 
 

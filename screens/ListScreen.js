@@ -69,6 +69,7 @@ export default function ListScreen() {
     const [studies, setStudies] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedStudy, setSelectedStudy] = useState(null);
+    const [loginRequestMessage, setLoginRequestMessage] = useState('');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -101,53 +102,76 @@ export default function ListScreen() {
     const fetchStudies = async () => {
         try {
             const token = await AsyncStorage.getItem('AccessToken');
-            // 서버 요청을 위한 API 호출
+            console.log(token);
+            if (!token) {
+                setLoginRequestMessage('로그인을 해주세요');
+                return;
+            }
+
             const response = await axios.get(`${Config.MY_IP}:8080/my-study-board`, {
-                headers: { Authorization: token }
+                headers: {Authorization: token}
             });
-            // console.log(`응답 데이터 : ${response.data.data}`);
             setStudies(response.data.data);
         } catch (error) {
             console.error(error);
         }
     };
 
+
     return (
         <Provider>
             <View style={Styles.container}>
-                <View style={Styles.header}>
-                    <View style={{ flex: 3, justifyContent: 'center' }}>
-                        <Text style={Styles.headerTitle}>스터디 목록</Text>
+                {loginRequestMessage ? (
+                    <View style={Styles.messageContainer}>
+                        <Text style={Styles.messageText}>{loginRequestMessage}</Text>
                     </View>
-                    <View style={{ flex: 1 }}></View>
-                </View>
-                {studies.length > 0 ? (
-                    <FlatList
-                        data={studies}
-                        renderItem={({ item }) => (
-                            <TouchableOpacity onPress={() => openModal(item)}>
-                                <StudyCard item={item} onLeave={updateStudies} />
-                            </TouchableOpacity>
-                        )}
-                        keyExtractor={item => item.studyPostId.toString()}
-                    />
                 ) : (
-                    <View style={Styles.emptyContainer}>
-                        <Text>가입된 스터디가 없어요</Text>
-                    </View>
+                    <>
+                        <View style={Styles.header}>
+                            <View style={{flex: 3, justifyContent: 'center'}}>
+                                <Text style={Styles.headerTitle}>스터디 목록</Text>
+                            </View>
+                            <View style={{flex: 1}}></View>
+                        </View>
+                        {studies.length > 0 ? (
+                            <FlatList
+                                data={studies}
+                                renderItem={({item}) => (
+                                    <TouchableOpacity onPress={() => openModal(item)}>
+                                        <StudyCard item={item} onLeave={updateStudies}/>
+                                    </TouchableOpacity>
+                                )}
+                                keyExtractor={item => item.studyPostId.toString()}
+                            />
+                        ) : (
+                            <View style={Styles.emptyContainer}>
+                                <Text>가입된 스터디가 없어요</Text>
+                            </View>
+                        )}
+                        <StudyModal
+                            visible={modalVisible}
+                            hideModal={closeModal}
+                            studyData={selectedStudy || {}}
+                        />
+                    </>
                 )}
-                <StudyModal
-                    visible={modalVisible}
-                    hideModal={closeModal}
-                    studyData={selectedStudy || {}}
-                />
             </View>
         </Provider>
-
     );
 }
 
-const Styles = StyleSheet.create({
+
+
+    const Styles = StyleSheet.create({
+    messageContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    messageText: {
+        fontSize: 18,
+        color: 'red',
+    },
     modalContainer: {
         backgroundColor: 'white',
         padding: 20,

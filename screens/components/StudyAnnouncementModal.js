@@ -186,6 +186,7 @@ const StudyModal = ({ visible, hideModal, studyData }) => {
                 visible={announcementModalVisible}
                 onDismiss={closeAnnouncementModal}
                 announcement={selectedAnnouncement}
+                updateAnnouncement={updateAnnouncement}
                 studyPostId = {studyData.studyPostId}
             />
         </Portal>
