@@ -53,7 +53,7 @@ const StudyModal = ({ visible, hideModal, studyData }) => {
         // 서버 요청으로 공지 목록을 가져오는 로직
         try {
             const token = await AsyncStorage.getItem('AccessToken');
-            const response = await axios.get(`${Config.MY_IP}:8080/study-board/${studyData.studyPostId}/detail`, {
+            const response = await axios.get(`${Config.MY_IP}:8080/study-board/${studyData.id}/detail`, {
                 headers: { Authorization: token }});
             console.log(response.data.data.announcementList);
             console.log(response.data.data.studyMemberList);
@@ -79,7 +79,7 @@ const StudyModal = ({ visible, hideModal, studyData }) => {
     const handleKickOut = async (member) => {
         try {
             const token = await AsyncStorage.getItem('AccessToken');
-            await axios.delete(`${Config.MY_IP}:8080/study-board/${studyData.studyPostId}/study-member/${member.studyMemberId}/expulsion`,
+            await axios.delete(`${Config.MY_IP}:8080/study-board/${studyData.id}/study-member/${member.studyMemberId}/expulsion`,
                 { headers: { Authorization: token }
             });
             await updateAnnouncement();
@@ -187,7 +187,7 @@ const StudyModal = ({ visible, hideModal, studyData }) => {
                 onDismiss={closeAnnouncementModal}
                 announcement={selectedAnnouncement}
                 updateAnnouncement={updateAnnouncement}
-                studyPostId = {studyData.studyPostId}
+                studyPostId = {studyData.id}
             />
         </Portal>
     );

@@ -16,7 +16,7 @@ const StudyCard = ({ item, onLeave }) => {
         // 탈퇴 요청 로직
         try {
             const token = await AsyncStorage.getItem('AccessToken');
-            await axios.delete(`${Config.MY_IP}:8080/study-board/${item.studyPostId}/study-member/withdrawal`, {
+            await axios.delete(`${Config.MY_IP}:8080/study-board/${item.id}/study-member/withdrawal`, {
                 headers: { Authorization: token }
             });
             // 부모 컴포넌트에 탈퇴 성공 알림
@@ -141,7 +141,7 @@ export default function ListScreen() {
                                         <StudyCard item={item} onLeave={updateStudies}/>
                                     </TouchableOpacity>
                                 )}
-                                keyExtractor={item => item.studyPostId.toString()}
+                                keyExtractor={item => item.id.toString()}
                             />
                         ) : (
                             <View style={Styles.emptyContainer}>

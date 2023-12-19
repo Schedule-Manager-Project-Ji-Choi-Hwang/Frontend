@@ -15,12 +15,12 @@ const AddAnnouncementModal = ({ visible, onDismiss, updateAnnouncement, studyDat
             // 만약 공지 제목이나 내용이 비어있으면 여기에서 검사하고 등록 못하게 막기
             //
             //
-            console.log(`studyData.studyPostId : ${studyData.studyPostId}`)
+            console.log(`studyData.studyPostId : ${studyData.id}`)
             console.log(`title : ${announcementTitle}`)
             console.log(`post : ${announcementContent}`)
 
             const token = await AsyncStorage.getItem('AccessToken');
-            await axios.post(`${Config.MY_IP}:8080/study-board/${studyData.studyPostId}/study-announcements/add`,
+            await axios.post(`${Config.MY_IP}:8080/study-board/${studyData.id}/study-announcements/add`,
                 { announcementTitle: announcementTitle,
                     announcementPost : announcementContent},
                 { headers: { Authorization: token } }

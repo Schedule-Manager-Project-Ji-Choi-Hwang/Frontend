@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, Modal, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Modal, TouchableOpacity, Animated, ActivityIndicator } from 'react-native';
 import Config from '../config/config';
 import axios from "axios";
-import {IconButton} from "react-native-paper";
+import {FAB, IconButton} from "react-native-paper";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AddStudyPostModal from "./AddStudyPostModal";
@@ -11,9 +11,15 @@ import StudyPostDetailModal from "./StudyPostDetailModal"
 
 export default function GatherScreen() {
     const [posts, setPosts] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [lastPostId, setLastPostId] = useState(null);
     const [isModalVisible, setModalVisible] = useState(false); // 모달 상태 추가
     const [postDetail, setPostDetail] = useState(null);
     const [postDetailModalVisible, setPostDetailModalVisible] = useState(false);
+
+    const [myPost, setMyPost] = useState(false);
+
+    const [FABStatus, setFABStatus] = useState(false);
 
     const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -39,12 +45,44 @@ export default function GatherScreen() {
         setPostDetailModalVisible(false);
     };
 
-
     const fetchPosts = async () => {
+        if (isLoading) return; // 이미 로딩 중이면 추가 요청을 방지
+
+        // "내가 작성한 글 보기"가 활성화된 경우 무한 스크롤 중지
+        if (isLoading || myPost) return;
+
+        setIsLoading(true);
         try {
-            const response = await axios.get(`${Config.MY_IP}:8080/study-board`);
+            const response = await axios.get(`${Config.MY_IP}:8080/study-board`, {
+                params: { lastPostId }
+            });
             if (response.status == 200) {
-                setPosts(response.data.data.content);
+                const newPosts = response.data.data.content;
+                setPosts(prevPosts => [...prevPosts, ...newPosts]);
+
+                // 마지막 게시글의 ID를 업데이트
+                if (newPosts.length > 0) {
+                    setLastPostId(newPosts[newPosts.length - 1].id);
+                }
+            }else if (response.status === 400) {
+                setPosts([]);
+            }
+        } catch (error) {
+            console.error('Fetch error:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const fetchMyPosts = async () => {
+        try {
+            const token = await AsyncStorage.getItem('AccessToken');
+            const response = await axios.get(`${Config.MY_IP}:8080/my-postlist`, {
+                headers: { Authorization: token }
+            });
+            if (response.status == 200) {
+                setPosts(response.data.data);
+                console.log(posts);
             }else if (response.status === 400) {
                 setPosts([]);
             }
@@ -62,6 +100,19 @@ export default function GatherScreen() {
             if (response.status === 200) {
                 setPostDetail(response.data);
                 setPostDetailModalVisible(true);
+            }
+        } catch (error) {
+            console.error('Error fetching post details:', error);
+        }
+    };
+
+    const updatePostDetailModal = async (studyBoardId) => {
+        try {
+            const token = await AsyncStorage.getItem('AccessToken');
+            const response = await axios.get(`${Config.MY_IP}:8080/study-board/${studyBoardId}`,
+                {headers: {Authorization: token}});
+            if (response.status === 200) {
+                setPostDetail(response.data);
             }
         } catch (error) {
             console.error('Error fetching post details:', error);
@@ -97,19 +148,33 @@ export default function GatherScreen() {
         </AnimatedTouchableOpacity>
     );
 
+    const onFABStateChange = ({ open }) => setFABStatus(open);
+
     return (
         <View style={styles.container}>
+            <View style={styles.header}>
+                <View style={{flex: 3, justifyContent: 'center'}}>
+                    <Text style={styles.headerTitle}>스터디 게시글</Text>
+                </View>
+                <View style={{flex: 1}}></View>
+            </View>
+            {myPost && (
+                <>
+                    <TouchableOpacity style={styles.button} onPress={async () => {await fetchPosts();
+                        setMyPost(false);
+                        setLastPostId(null);
+                    }}>
+                        <Text style={styles.buttonText}>모든 글 보기</Text>
+                    </TouchableOpacity>
+                </>
+            )}
             <FlatList
                 data={posts}
                 renderItem={renderItem}
                 keyExtractor={item => item.id.toString()}
-            />
-            <IconButton
-                icon={() => (
-                    <MaterialCommunityIcons name="plus" color="white" size={24} />
-                )}
-                style={styles.addButton}
-                onPress={toggleModal}
+                onEndReached={myPost ? null : fetchPosts} // 리스트 끝에 도달하면 추가 게시글 로드
+                onEndReachedThreshold={0.5} // 리스트의 하단 50%에 도달했을 때 이벤트 발생
+                ListFooterComponent={isLoading ? <ActivityIndicator size="large" /> : null}
             />
             <AddStudyPostModal
                 isVisible={isModalVisible}
@@ -121,12 +186,65 @@ export default function GatherScreen() {
                 onClose={closePostDetailModal}
                 fetchPosts={fetchPosts}
                 postDetail={postDetail}
+                fetchpost={updatePostDetailModal}
+            />
+            <FAB.Group
+                open={FABStatus}
+                icon={FABStatus ? 'close' : 'plus'}
+                actions={[
+                    {
+                        icon: 'calendar-edit',
+                        label: '내가 작성한 글 보기',
+                        onPress: () => {
+                            setMyPost(true);
+                            fetchMyPosts();
+                        }
+                    },
+                    {
+                        icon: 'account-group',
+                        label: '게시글 작성',
+                        onPress: () => {
+                            if (FABStatus) {
+                                toggleModal();
+                            }
+                        }
+                    }
+                ]}
+                onStateChange={onFABStateChange}
+                onPress={() => {
+                    if (FABStatus) {
+                        setFABStatus(!open);
+                    }
+                }}
             />
         </View>
     );
 }
 
 const styles = StyleSheet.create({
+    button: {
+        backgroundColor: '#007bff', // 버튼 색상
+        padding: 12,
+        borderRadius: 8, // 버튼 모서리 둥글게
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%', // 너비 조정
+        marginTop: 10, // 마진 상단 추가
+    },
+    buttonText: {
+        color: 'white', // 버튼 텍스트 색상
+        fontSize: 16, // 텍스트 크기
+    },
+    header: {
+        flexDirection: 'row',
+        height: 45,
+        backgroundColor: 'white',
+        alignItems: 'center'
+    },
+    headerTitle: {
+        fontSize: 20,
+        textAlign: 'center'
+    },
     postContent: {
         padding: 20,
     },
