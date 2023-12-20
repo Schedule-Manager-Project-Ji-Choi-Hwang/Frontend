@@ -4,7 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import Config from "../config/config";
 
-const AddStudyPostModal = ({isVisible, fetchPosts, closeModal}) => {
+const AddStudyPostModal = ({isVisible, setAddState, setPosts, setLastPostId, fetchPosts, closeModal}) => {
     const [studyName, setStudyName] = useState('');
     const [tag, setTag] = useState();
     const [recruitMember, setRecruitMember] = useState('');
@@ -46,7 +46,9 @@ const AddStudyPostModal = ({isVisible, fetchPosts, closeModal}) => {
 
     const handlePost = async () => {
         await handleAddPost();
-        await fetchPosts();
+        setPosts();
+        setLastPostId();
+        setAddState();
     };
 
     return (

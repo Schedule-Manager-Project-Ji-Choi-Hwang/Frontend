@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, Modal, TouchableOpacity, Animated, ActivityIndicator } from 'react-native';
+import {
+    View,
+    Text,
+    FlatList,
+    StyleSheet,
+    Modal,
+    TouchableOpacity,
+    Animated,
+    ActivityIndicator,
+    TextInput, Button
+} from 'react-native';
 import Config from '../config/config';
 import axios from "axios";
 import {FAB, IconButton} from "react-native-paper";
@@ -17,6 +27,12 @@ export default function GatherScreen() {
     const [postDetail, setPostDetail] = useState(null);
     const [postDetailModalVisible, setPostDetailModalVisible] = useState(false);
 
+    const [addState, setAddState] = useState(false);
+    const [editState, setEditState] = useState(false);
+    const [searchText, setSearchText] = useState('');
+
+    const [currentSearch, setCurrentSearch] = useState(false);
+
     const [myPost, setMyPost] = useState(false);
 
     const [FABStatus, setFABStatus] = useState(false);
@@ -24,6 +40,43 @@ export default function GatherScreen() {
     const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
     const scaleValue = new Animated.Value(1);
+
+    const performSearch = async () => {
+        console.log("검색 실행");
+        // 여기에 검색 로직을 추가합니다. 예를 들어:
+        try {
+            if (isLoading) return; // 이미 로딩 중이면 추가 요청을 방지
+
+            // "내가 작성한 글 보기"가 활성화된 경우 무한 스크롤 중지
+            // if (isLoading || myPost) return;
+
+            setIsLoading(true);
+            const params = { studyName: searchText };
+            if (lastPostId !== null) {
+                params.lastPostId = lastPostId; // lastPostId가 null이 아니면 추가합니다
+            }
+            const response = await axios.get(`${Config.MY_IP}:8080/study-board`, {
+                params: params
+            });
+            console.log(response.status);
+            if (response.status == 200) {
+                const newPosts = response.data.data.content;
+                setPosts(prevPosts => [...prevPosts, ...newPosts]);
+
+                // 마지막 게시글의 ID를 업데이트
+                if (newPosts.length > 0) {
+                    setLastPostId(newPosts[newPosts.length - 1].id);
+                }
+            }else if (response.status === 400) {
+                setPosts([]);
+            }
+            console.log(`모든 글 보기 목록 : ${posts}`);
+        } catch (error) {
+            console.error('Fetch error:', error);
+        }finally {
+            setIsLoading(false);
+        }
+    };
 
     const startAnimation = () => {
         Animated.timing(scaleValue, {
@@ -49,7 +102,7 @@ export default function GatherScreen() {
         if (isLoading) return; // 이미 로딩 중이면 추가 요청을 방지
 
         // "내가 작성한 글 보기"가 활성화된 경우 무한 스크롤 중지
-        if (isLoading || myPost) return;
+        // if (isLoading || myPost) return;
 
         setIsLoading(true);
         try {
@@ -67,6 +120,7 @@ export default function GatherScreen() {
             }else if (response.status === 400) {
                 setPosts([]);
             }
+            console.log(`모든 글 보기 목록 : ${posts}`);
         } catch (error) {
             console.error('Fetch error:', error);
         } finally {
@@ -82,7 +136,7 @@ export default function GatherScreen() {
             });
             if (response.status == 200) {
                 setPosts(response.data.data);
-                console.log(posts);
+                console.log(`내가 작성한 글 목록 : ${posts}`);
             }else if (response.status === 400) {
                 setPosts([]);
             }
@@ -128,8 +182,17 @@ export default function GatherScreen() {
     };
 
     useEffect(() => {
-        fetchPosts();
-    }, []);
+        if (currentSearch) {
+            performSearch();
+        }else if (editState) {
+            setEditState(false);
+            setMyPost(true);
+            fetchMyPosts();
+        }else  if (!myPost || addState) {
+            fetchPosts();
+            setAddState(false);
+        }
+    }, [myPost, addState, editState, currentSearch]);
 
     const renderItem = ({ item }) => (
         <AnimatedTouchableOpacity
@@ -160,24 +223,59 @@ export default function GatherScreen() {
             </View>
             {myPost && (
                 <>
-                    <TouchableOpacity style={styles.button} onPress={async () => {await fetchPosts();
-                        setMyPost(false);
+                    <TouchableOpacity style={styles.button} onPress={() => {
+                        setPosts([]);
                         setLastPostId(null);
+                        setMyPost(false);
+                        setTimeout(() => {
+                            setMyPost(false);
+                        }, 200);
                     }}>
                         <Text style={styles.buttonText}>모든 글 보기</Text>
                     </TouchableOpacity>
+                </>
+            )}
+            {!myPost && (
+                <>
+                    <View style={styles.searchSection}>
+                        <TextInput
+                            style={styles.searchInput}
+                            placeholder="검색..."
+                            value={searchText}
+                            onChangeText={text => setSearchText(text)}
+                        />
+                        <TouchableOpacity style={styles.searchButton} onPress={() => {
+                            setPosts([]);
+                            setLastPostId(null);
+                            setTimeout(() => {
+                                setMyPost(false);
+                            }, 200);
+                            setCurrentSearch(true);
+                        }}>
+                            <Text style={styles.searchButtonText}>검색</Text>
+                        </TouchableOpacity>
+                    </View>
                 </>
             )}
             <FlatList
                 data={posts}
                 renderItem={renderItem}
                 keyExtractor={item => item.id.toString()}
-                onEndReached={myPost ? null : fetchPosts} // 리스트 끝에 도달하면 추가 게시글 로드
+                onEndReached={() => {
+                    if (searchText.trim() !== '') {
+                        performSearch();
+                    } else if (!myPost) {
+                        fetchPosts();
+                    }
+                }} // 리스트 끝에 도달하면 추가 게시글 로드
                 onEndReachedThreshold={0.5} // 리스트의 하단 50%에 도달했을 때 이벤트 발생
                 ListFooterComponent={isLoading ? <ActivityIndicator size="large" /> : null}
             />
             <AddStudyPostModal
                 isVisible={isModalVisible}
+                setAddState={() => setAddState(true)}
+                setPosts={() => setPosts([])}
+                setLastPostId={() => setLastPostId(null)}
                 fetchPosts={fetchPosts}
                 closeModal={closeModal}
             />
@@ -187,6 +285,9 @@ export default function GatherScreen() {
                 fetchPosts={fetchPosts}
                 postDetail={postDetail}
                 fetchpost={updatePostDetailModal}
+                setEditState={() => setEditState(true)}
+                setPosts={() => setPosts([])}
+                setLastPostId={() => setLastPostId(null)}
             />
             <FAB.Group
                 open={FABStatus}
@@ -197,6 +298,7 @@ export default function GatherScreen() {
                         label: '내가 작성한 글 보기',
                         onPress: () => {
                             setMyPost(true);
+                            setPosts([]);
                             fetchMyPosts();
                         }
                     },
@@ -222,6 +324,27 @@ export default function GatherScreen() {
 }
 
 const styles = StyleSheet.create({
+    searchSection: {
+        flexDirection: 'row',
+        padding: 10,
+    },
+    searchInput: {
+        flex: 1,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        padding: 10,
+        borderRadius: 5,
+        marginRight: 10,
+    },
+    searchButton: {
+        backgroundColor: '#007bff',
+        padding: 10,
+        borderRadius: 5,
+    },
+    searchButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+    },
     button: {
         backgroundColor: '#007bff', // 버튼 색상
         padding: 12,
