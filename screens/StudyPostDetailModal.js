@@ -6,7 +6,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-const StudyPostDetailModal = ({ isVisible, onClose, postDetail, fetchPosts, fetchpost, setEditState, setPosts, setLastPostId}) => {
+const StudyPostDetailModal = ({ isVisible, onClose, postDetail, fetchPosts, fetchpost, setEditState, setDeleteState, setPosts, setLastPostId}) => {
     const [isEditMode, setIsEditMode] = useState(false);
     const [editStudyName, setEditStudyName] = useState('');
     const [editTag, setEditTag] = useState('');
@@ -72,7 +72,10 @@ const StudyPostDetailModal = ({ isVisible, onClose, postDetail, fetchPosts, fetc
 
     const handleDeleteUpdate = async () => {
         await handleDelete();
-        await fetchPosts();
+        // await fetchPosts();
+        setPosts();
+        setLastPostId();
+        setDeleteState();
     };
 
     const handleEditUpdate = async () => {

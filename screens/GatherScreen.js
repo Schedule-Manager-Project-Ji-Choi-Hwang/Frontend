@@ -29,6 +29,7 @@ export default function GatherScreen() {
 
     const [addState, setAddState] = useState(false);
     const [editState, setEditState] = useState(false);
+    const [deleteState, setDeleteState] = useState(false);
     const [searchText, setSearchText] = useState('');
     const [searchLast, setSearchLast] = useState(false);
 
@@ -217,11 +218,12 @@ export default function GatherScreen() {
             setEditState(false);
             setMyPost(true);
             fetchMyPosts();
-        }else  if (!myPost || addState) {
+        }else  if (!myPost || addState || deleteState) {
             fetchPosts();
             setAddState(false);
+            setDeleteState(false);
         }
-    }, [myPost, addState, editState]);
+    }, [myPost, addState, editState, deleteState]);
 
     const renderItem = ({ item }) => (
         <AnimatedTouchableOpacity
@@ -316,6 +318,7 @@ export default function GatherScreen() {
                 postDetail={postDetail}
                 fetchpost={updatePostDetailModal}
                 setEditState={() => setEditState(true)}
+                setDeleteState={() => setDeleteState(true)}
                 setPosts={() => setPosts([])}
                 setLastPostId={() => setLastPostId(null)}
             />
