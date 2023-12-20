@@ -43,45 +43,71 @@ export default function GatherScreen() {
     const scaleValue = new Animated.Value(1);
 
     const performSearch = async () => {
-        // 여기에 검색 로직을 추가합니다. 예를 들어:
+        if (isLoading) return; // 이미 로딩 중이면 추가 요청을 방지
+
+        setIsLoading(true);
+        setPosts([]);
+        setLastPostId(null);
+
         try {
-            if (isLoading) return; // 이미 로딩 중이면 추가 요청을 방지
-
-            // "내가 작성한 글 보기"가 활성화된 경우 무한 스크롤 중지
-            // if (isLoading || myPost) return;
-
-            setIsLoading(true);
             const params = { studyName: searchText };
-            if (lastPostId !== null) {
-                params.lastPostId = lastPostId; // lastPostId가 null이 아니면 추가합니다
-            }
-            const response = await axios.get(`${Config.MY_IP}:8080/study-board`, {
-                params: params
-            });
-            if (response.status == 200) {
-                console.log("검색");
-                console.log(`검색 리스트 : ${response.data.data.content}`);
-                if (response.data.data.last == true) {
+            const response = await axios.get(`${Config.MY_IP}:8080/study-board`, { params });
+            if (response.status === 200) {
+                const newPosts = response.data.data.content;
+                setPosts(newPosts); // 새 검색 결과로 posts 업데이트
+
+                if (newPosts.length > 0) {
+                    setLastPostId(newPosts[newPosts.length - 1].id); // 마지막 게시글 ID 업데이트
+                }
+                if (response.data.data.last) {
                     setSearchLast(true);
                 }
-
-                const newPosts = response.data.data.content;
-                setPosts(prevPosts => [...prevPosts, ...newPosts]);
-
-                // 마지막 게시글의 ID를 업데이트
-                if (newPosts.length > 0) {
-                    setLastPostId(newPosts[newPosts.length - 1].id);
-                }
-            }else if (response.status === 400) {
-                setPosts([]);
+            } else {
+                // 에러 처리
+                console.log('Error fetching search results:', response.status);
             }
-            console.log(`모든 글 보기 목록 : ${posts}`);
         } catch (error) {
             console.error('Fetch error:', error);
-        }finally {
+        } finally {
             setIsLoading(false);
         }
     };
+
+    const performSearchs = async () => {
+        if (isLoading || searchLast) return; // 이미 로딩 중이거나 마지막 페이지에 도달했으면 추가 요청 방지
+
+        setIsLoading(true);
+
+        try {
+            const params = {
+                studyName: searchText,
+                lastPostId: lastPostId // 추가: 마지막 게시물 ID를 파라미터로 전달
+            };
+            const response = await axios.get(`${Config.MY_IP}:8080/study-board`, { params });
+            if (response.status === 200) {
+                const newPosts = response.data.data.content;
+
+                setPosts(prevPosts => [...prevPosts, ...newPosts]);
+
+                if (newPosts.length > 0) {
+                    setLastPostId(newPosts[newPosts.length - 1].id);
+                }
+
+                if (response.data.data.last) {
+                    setSearchLast(true);
+                }
+            } else {
+                // 에러 처리
+                console.log('Error fetching search results:', response.status);
+            }
+        } catch (error) {
+            console.error('Fetch error:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+
 
     const startAnimation = () => {
         Animated.timing(scaleValue, {
@@ -267,7 +293,7 @@ export default function GatherScreen() {
                 keyExtractor={item => item.id.toString()}
                 onEndReached={() => {
                     if (searchText.trim() !== '' && !searchLast) {
-                        performSearch();
+                        performSearchs();
                     } else if (!myPost && !(searchText.trim() !== '')) {
                         fetchPosts();
                     }
