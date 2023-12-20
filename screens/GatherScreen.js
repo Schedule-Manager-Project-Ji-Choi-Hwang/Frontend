@@ -30,6 +30,7 @@ export default function GatherScreen() {
     const [addState, setAddState] = useState(false);
     const [editState, setEditState] = useState(false);
     const [searchText, setSearchText] = useState('');
+    const [searchLast, setSearchLast] = useState(false);
 
     const [currentSearch, setCurrentSearch] = useState(false);
 
@@ -42,7 +43,6 @@ export default function GatherScreen() {
     const scaleValue = new Animated.Value(1);
 
     const performSearch = async () => {
-        console.log("검색 실행");
         // 여기에 검색 로직을 추가합니다. 예를 들어:
         try {
             if (isLoading) return; // 이미 로딩 중이면 추가 요청을 방지
@@ -58,8 +58,13 @@ export default function GatherScreen() {
             const response = await axios.get(`${Config.MY_IP}:8080/study-board`, {
                 params: params
             });
-            console.log(response.status);
             if (response.status == 200) {
+                console.log("검색");
+                console.log(`검색 리스트 : ${response.data.data.content}`);
+                if (response.data.data.last == true) {
+                    setSearchLast(true);
+                }
+
                 const newPosts = response.data.data.content;
                 setPosts(prevPosts => [...prevPosts, ...newPosts]);
 
@@ -182,9 +187,7 @@ export default function GatherScreen() {
     };
 
     useEffect(() => {
-        if (currentSearch) {
-            performSearch();
-        }else if (editState) {
+        if (editState) {
             setEditState(false);
             setMyPost(true);
             fetchMyPosts();
@@ -192,7 +195,7 @@ export default function GatherScreen() {
             fetchPosts();
             setAddState(false);
         }
-    }, [myPost, addState, editState, currentSearch]);
+    }, [myPost, addState, editState]);
 
     const renderItem = ({ item }) => (
         <AnimatedTouchableOpacity
@@ -247,10 +250,11 @@ export default function GatherScreen() {
                         <TouchableOpacity style={styles.searchButton} onPress={() => {
                             setPosts([]);
                             setLastPostId(null);
+                            setSearchLast(false);
                             setTimeout(() => {
                                 setMyPost(false);
                             }, 200);
-                            setCurrentSearch(true);
+                            performSearch()
                         }}>
                             <Text style={styles.searchButtonText}>검색</Text>
                         </TouchableOpacity>
@@ -262,9 +266,9 @@ export default function GatherScreen() {
                 renderItem={renderItem}
                 keyExtractor={item => item.id.toString()}
                 onEndReached={() => {
-                    if (searchText.trim() !== '') {
+                    if (searchText.trim() !== '' && !searchLast) {
                         performSearch();
-                    } else if (!myPost) {
+                    } else if (!myPost && !(searchText.trim() !== '')) {
                         fetchPosts();
                     }
                 }} // 리스트 끝에 도달하면 추가 게시글 로드
