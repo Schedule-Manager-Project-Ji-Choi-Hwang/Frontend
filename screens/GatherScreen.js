@@ -219,7 +219,17 @@ export default function GatherScreen() {
             setMyPost(true);
             fetchMyPosts();
         }else  if (!myPost || addState || deleteState) {
-            fetchPosts();
+            if (deleteState && myPost) {
+                fetchMyPosts();
+            } else if (deleteState && !myPost) {
+                fetchPosts();
+                setMyPost(false);
+            } else if (addState) {
+                fetchPosts();
+            } else if (!myPost && !addState && !deleteState) {
+                fetchPosts();
+            }
+            // fetchPosts();
             setAddState(false);
             setDeleteState(false);
         }
