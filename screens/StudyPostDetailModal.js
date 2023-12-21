@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Modal, View, Text, TouchableOpacity, StyleSheet, TextInput, Switch} from 'react-native';
+import {Modal, View, Text, TouchableOpacity, StyleSheet, TextInput, Switch, ScrollView, Button} from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Config from '../config/config';
 import axios from 'axios';
@@ -14,6 +14,8 @@ const StudyPostDetailModal = ({ isVisible, onClose, postDetail, fetchPosts, fetc
     const [editOnOff, setEditOnOff] = useState(false);
     const [editArea, setEditArea] = useState('');
     const [editPost, setEditPost] = useState('');
+    const [applicationMembers, setApplicationMembers] = useState([]);
+    const [isApplicationListVisible, setIsApplicationListVisible] = useState(false);
 
     useEffect(() => {
 
@@ -88,10 +90,65 @@ const StudyPostDetailModal = ({ isVisible, onClose, postDetail, fetchPosts, fetc
         setEditState();
     };
 
-    const handleApply = () => {
-        console.log("신청하기 버튼 클릭됨");
-        // 신청 관련 로직 추가
+    const handleApply = async () => {
+        try {
+            const token = await AsyncStorage.getItem('AccessToken');
+            await axios.post(`${Config.MY_IP}:8080/study-board/${postDetail.id}/application-member/add`,{},{
+                headers: { Authorization: token }
+            });
+        } catch (error) {
+            console.error('Error post:', error);
+        }
     };
+
+    const handleApplication = async () => {
+        await handleApply();
+        await fetchpost(postDetail.id);
+    }
+
+    const handleApplicationList = async () => {
+        try {
+            const token = await AsyncStorage.getItem('AccessToken');
+            const response = await axios.get(`${Config.MY_IP}:8080/study-board/${postDetail.id}/application-members`,{
+                headers: { Authorization: token }
+            });
+            setApplicationMembers(response.data.data);
+        } catch (error) {
+            console.error('Error post:', error);
+        }
+    }
+
+    const handleApplicationAccept = async (applicationMemberId) => {
+        try {
+            const token = await AsyncStorage.getItem('AccessToken');
+            const response = await axios.post(`${Config.MY_IP}:8080/study-board/${postDetail.id}/application-member/${applicationMemberId}/study-member/add`, {},{
+                headers: { Authorization: token }
+            });
+        } catch (error) {
+            console.error('Error post:', error);
+        }
+    }
+
+    const handleAccept = async (applicationMemberId) => {
+        await handleApplicationAccept(applicationMemberId);
+        await handleApplicationList();
+    }
+
+    const handleApplicationRefuse = async (applicationMemberId) => {
+        try {
+            const token = await AsyncStorage.getItem('AccessToken');
+            const response = await axios.delete(`${Config.MY_IP}:8080/study-board/${postDetail.id}/application-members/${applicationMemberId}/delete`, {
+                headers: { Authorization: token }
+            });
+        } catch (error) {
+            console.error('Error post:', error);
+        }
+    }
+
+    const handleRefuse = async (applicationMemberId) => {
+        await handleApplicationRefuse(applicationMemberId);
+        await handleApplicationList();
+    }
 
     return (
         <Modal visible={isVisible} transparent onRequestClose={onClose}>
@@ -164,9 +221,51 @@ const StudyPostDetailModal = ({ isVisible, onClose, postDetail, fetchPosts, fetc
                             <Text style={styles.text}>온/오프라인: {postDetail.onOff ? '온라인' : '오프라인'}</Text>
                             <Text style={styles.text}>지역: {postDetail.area ? postDetail.area : '미정'}</Text>
                             <Text style={styles.text}>내용: {postDetail.post ? postDetail.post : '내용이 없어요'}</Text>
-                            <TouchableOpacity onPress={handleApply} style={styles.applyButton}>
-                                <Text style={styles.applyButtonText}>신청하기</Text>
-                            </TouchableOpacity>
+                            {!postDetail.applicationAuthority && !postDetail.studyMemberAuthority && (
+                                <TouchableOpacity onPress={handleApplication} style={styles.applyButton}>
+                                    <Text style={styles.applyButtonText}>신청하기</Text>
+                                </TouchableOpacity>
+                            )}
+                            {
+                                isApplicationListVisible && (
+                                    applicationMembers.length > 0 ? (
+                                        <ScrollView style={styles.applicationList}>
+                                            {applicationMembers.map((member, index) => (
+                                                <View key={index} style={styles.memberItem}>
+                                                    <Text style={styles.memberText}>
+                                                        {index + 1}. {member.nickname}
+                                                    </Text>
+                                                    <View style={styles.buttonGroup}>
+                                                        <TouchableOpacity
+                                                            style={[styles.button, styles.acceptButton]}
+                                                            onPress={() => handleAccept(member.id)}
+                                                        >
+                                                            <Text style={styles.buttonText}>수락</Text>
+                                                        </TouchableOpacity>
+                                                        <TouchableOpacity
+                                                            style={[styles.button, styles.rejectButton]}
+                                                            onPress={() => handleRefuse(member.id)}
+                                                        >
+                                                            <Text style={styles.buttonText}>거절</Text>
+                                                        </TouchableOpacity>
+                                                    </View>
+                                                </View>
+                                            ))}
+                                        </ScrollView>
+                                    ) : (
+                                        <Text style={styles.noMembersText}>신청 멤버가 없어요</Text>
+                                    )
+                                )
+                            }
+
+                            {postDetail.authority && (
+                                <TouchableOpacity onPress={() => {
+                                    handleApplicationList();
+                                    setIsApplicationListVisible(!isApplicationListVisible);
+                                }} style={styles.applyButton}>
+                                    <Text style={styles.applyButtonText}>신청목록 보기</Text>
+                                </TouchableOpacity>
+                            )}
                             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                                 <Text style={styles.closeButtonText}>닫기</Text>
                             </TouchableOpacity>
@@ -179,6 +278,69 @@ const StudyPostDetailModal = ({ isVisible, onClose, postDetail, fetchPosts, fetc
 };
 
 const styles = StyleSheet.create({
+    noMembersText: {
+        fontSize: 16,
+        color: '#555',
+        textAlign: 'center',
+        marginTop: 20,
+        // 기타 필요한 스타일
+    },
+    buttonGroup: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+
+    button: {
+        padding: 10,
+        borderRadius: 5,
+        marginHorizontal: 5, // 버튼 사이 간격
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    acceptButton: {
+        backgroundColor: '#007bff', // 파란색 배경
+    },
+
+    rejectButton: {
+        backgroundColor: '#ff0000', // 빨간색 배경
+    },
+
+    buttonText: {
+        color: 'white', // 텍스트 색상
+        fontSize: 16, // 텍스트 크기
+        // 기타 텍스트 스타일
+    },
+    applicationList: {
+        marginTop: 10,
+        maxHeight: 200, // 스크롤 뷰의 최대 높이 설정
+    },
+    memberItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ddd',
+        backgroundColor: '#f9f9f9',
+    },
+    memberText: {
+        fontSize: 16,
+        color: '#333', // 텍스트 색상
+        // 기타 텍스트 스타일
+    },
+    applicationText: {
+        fontSize: 14,
+        // 필요한 텍스트 스타일 추가
+    },
+    applyButtonDisabled: {
+        backgroundColor: '#ccc', // 비활성화 상태의 배경색
+        // 기타 비활성화 상태에 필요한 스타일
+    },
+    applyButtonTextDisabled: {
+        color: '#999', // 비활성화 상태의 텍스트 색상
+        // 기타 비활성화 상태의 텍스트 스타일
+    },
     applyButton: {
         backgroundColor: '#007bff', // 버튼 배경색
         padding: 10,
