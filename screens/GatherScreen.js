@@ -12,11 +12,12 @@ import {
 } from 'react-native';
 import Config from '../config/config';
 import axios from "axios";
-import {FAB, IconButton} from "react-native-paper";
+import {FAB, IconButton, Provider} from "react-native-paper";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AddStudyPostModal from "./AddStudyPostModal";
 import StudyPostDetailModal from "./StudyPostDetailModal"
+import StudyItem from "./components/StudyPostItem";
 
 
 export default function GatherScreen() {
@@ -225,7 +226,13 @@ export default function GatherScreen() {
                 fetchPosts();
                 setMyPost(false);
             } else if (addState) {
-                fetchPosts();
+                if (!myPost) {
+                    fetchPosts();
+                } else {
+                    fetchPosts();
+                    setMyPost(false);
+                }
+
             } else if (!myPost && !addState && !deleteState) {
                 fetchPosts();
             }
@@ -236,133 +243,131 @@ export default function GatherScreen() {
     }, [myPost, addState, editState, deleteState]);
 
     const renderItem = ({ item }) => (
-        <AnimatedTouchableOpacity
-            onPressIn={startAnimation}
-            onPressOut={resetAnimation}
-            onPress={() => openPostDetailModal(item.id)}
-            style={[styles.post, { transform: [{ scale: scaleValue }] }]}
-        >
-            <View style={styles.postContent}>
-                <Text style={styles.postTitle}>{item.studyName}</Text>
-                <Text style={styles.textStyle}>태그: {item.tag ? item.tag : '없음'}</Text>
-                <Text style={styles.textStyle}>모집 인원: {item.recruitMember}</Text>
-                <Text style={styles.textStyle}>온/오프라인: {item.onOff ? '온라인' : '오프라인'}</Text>
-                <Text style={styles.textStyle}>지역: {item.area ? item.area : '미정'}</Text>
-            </View>
-        </AnimatedTouchableOpacity>
+        <StudyItem
+            item={item}
+            onPressItem={openPostDetailModal}
+            myPost={myPost}
+            setDeleteState={() => setDeleteState(true)}
+            setPosts={() => setPosts([])}
+            setLastPostId={() => setLastPostId(null)}
+            setEditState={() => setEditState(true)}
+        />
     );
 
     const onFABStateChange = ({ open }) => setFABStatus(open);
 
     return (
-        <View style={styles.container}>
-            <View style={styles.header}>
-                <View style={{flex: 3, justifyContent: 'center'}}>
-                    <Text style={styles.headerTitle}>스터디 게시글</Text>
+        <Provider>
+            <View style={styles.container}>
+                <View style={styles.header}>
+                    <View style={{flex: 3, justifyContent: 'center'}}>
+                        <Text style={styles.headerTitle}>스터디 게시글</Text>
+                    </View>
+                    <View style={{flex: 1}}></View>
                 </View>
-                <View style={{flex: 1}}></View>
-            </View>
-            {myPost && (
-                <>
-                    <TouchableOpacity style={styles.button} onPress={() => {
-                        setPosts([]);
-                        setLastPostId(null);
-                        setMyPost(false);
-                        setTimeout(() => {
-                            setMyPost(false);
-                        }, 200);
-                    }}>
-                        <Text style={styles.buttonText}>모든 글 보기</Text>
-                    </TouchableOpacity>
-                </>
-            )}
-            {!myPost && (
-                <>
-                    <View style={styles.searchSection}>
-                        <TextInput
-                            style={styles.searchInput}
-                            placeholder="검색..."
-                            value={searchText}
-                            onChangeText={text => setSearchText(text)}
-                        />
-                        <TouchableOpacity style={styles.searchButton} onPress={() => {
+                {myPost && (
+                    <>
+                        <TouchableOpacity style={styles.button} onPress={() => {
                             setPosts([]);
                             setLastPostId(null);
-                            setSearchLast(false);
+                            setMyPost(false);
                             setTimeout(() => {
                                 setMyPost(false);
                             }, 200);
-                            performSearch()
                         }}>
-                            <Text style={styles.searchButtonText}>검색</Text>
+                            <Text style={styles.buttonText}>모든 글 보기</Text>
                         </TouchableOpacity>
-                    </View>
-                </>
-            )}
-            <FlatList
-                data={posts}
-                renderItem={renderItem}
-                keyExtractor={item => item.id.toString()}
-                onEndReached={() => {
-                    if (searchText.trim() !== '' && !searchLast) {
-                        performSearchs();
-                    } else if (!myPost && !(searchText.trim() !== '')) {
-                        fetchPosts();
-                    }
-                }} // 리스트 끝에 도달하면 추가 게시글 로드
-                onEndReachedThreshold={0.5} // 리스트의 하단 50%에 도달했을 때 이벤트 발생
-                ListFooterComponent={isLoading ? <ActivityIndicator size="large" /> : null}
-            />
-            <AddStudyPostModal
-                isVisible={isModalVisible}
-                setAddState={() => setAddState(true)}
-                setPosts={() => setPosts([])}
-                setLastPostId={() => setLastPostId(null)}
-                fetchPosts={fetchPosts}
-                closeModal={closeModal}
-            />
-            <StudyPostDetailModal
-                isVisible={postDetailModalVisible}
-                onClose={closePostDetailModal}
-                fetchPosts={fetchPosts}
-                postDetail={postDetail}
-                fetchpost={updatePostDetailModal}
-                setEditState={() => setEditState(true)}
-                setDeleteState={() => setDeleteState(true)}
-                setPosts={() => setPosts([])}
-                setLastPostId={() => setLastPostId(null)}
-            />
-            <FAB.Group
-                open={FABStatus}
-                icon={FABStatus ? 'close' : 'plus'}
-                actions={[
-                    {
-                        icon: 'calendar-edit',
-                        label: '내가 작성한 글 보기',
-                        onPress: () => {
-                            setMyPost(true);
-                            setPosts([]);
-                            fetchMyPosts();
+                    </>
+                )}
+                {!myPost && (
+                    <>
+                        <View style={styles.searchSection}>
+                            <TextInput
+                                style={styles.searchInput}
+                                placeholder="검색..."
+                                value={searchText}
+                                onChangeText={text => setSearchText(text)}
+                            />
+                            <TouchableOpacity style={styles.searchButton} onPress={() => {
+                                setPosts([]);
+                                setLastPostId(null);
+                                setSearchLast(false);
+                                setTimeout(() => {
+                                    setMyPost(false);
+                                }, 200);
+                                performSearch()
+                            }}>
+                                <Text style={styles.searchButtonText}>검색</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </>
+                )}
+                <FlatList
+                    data={posts}
+                    renderItem={renderItem}
+                    keyExtractor={item => item.id.toString()}
+                    onEndReached={() => {
+                        if (searchText.trim() !== '' && !searchLast) {
+                            performSearchs();
+                        } else if (!myPost && !(searchText.trim() !== '')) {
+                            fetchPosts();
                         }
-                    },
-                    {
-                        icon: 'account-group',
-                        label: '게시글 작성',
-                        onPress: () => {
-                            if (FABStatus) {
-                                toggleModal();
+                    }} // 리스트 끝에 도달하면 추가 게시글 로드
+                    onEndReachedThreshold={0.5} // 리스트의 하단 50%에 도달했을 때 이벤트 발생
+                    ListFooterComponent={isLoading ? <ActivityIndicator size="large" /> : null}
+                />
+                <AddStudyPostModal
+                    isVisible={isModalVisible}
+                    setAddState={() => setAddState(true)}
+                    setPosts={() => setPosts([])}
+                    setLastPostId={() => setLastPostId(null)}
+                    fetchPosts={fetchPosts}
+                    closeModal={closeModal}
+                />
+                <StudyPostDetailModal
+                    isVisible={postDetailModalVisible}
+                    onClose={closePostDetailModal}
+                    fetchPosts={fetchPosts}
+                    postDetail={postDetail}
+                    fetchpost={updatePostDetailModal}
+                    setEditState={() => setEditState(true)}
+                    setDeleteState={() => setDeleteState(true)}
+                    setPosts={() => setPosts([])}
+                    setLastPostId={() => setLastPostId(null)}
+                />
+                <FAB.Group
+                    open={FABStatus}
+                    icon={FABStatus ? 'close' : 'plus'}
+                    actions={[
+                        {
+                            icon: 'calendar-edit',
+                            label: '내가 작성한 글 보기',
+                            onPress: () => {
+                                setMyPost(true);
+                                setPosts([]);
+                                fetchMyPosts();
+                            }
+                        },
+                        {
+                            icon: 'account-group',
+                            label: '게시글 작성',
+                            onPress: () => {
+                                if (FABStatus) {
+                                    toggleModal();
+                                }
                             }
                         }
-                    }
-                ]}
-                onStateChange={onFABStateChange}
-                onPress={() => {
-                    if (FABStatus) {
-                        setFABStatus(!open);
-                    }
-                }}
-            />
-        </View>
+                    ]}
+                    onStateChange={onFABStateChange}
+                    onPress={() => {
+                        if (FABStatus) {
+                            setFABStatus(!open);
+                        }
+                    }}
+                />
+            </View>
+        </Provider>
+
     );
 }
 
