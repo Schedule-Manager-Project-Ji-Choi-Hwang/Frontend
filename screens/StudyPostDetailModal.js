@@ -196,7 +196,7 @@ const StudyPostDetailModal = ({ isVisible, onClose, postDetail, fetchPosts, fetc
                                 multiline
                             />
                             {/* 나머지 필드에 대한 입력 필드 추가... */}
-                            <TouchableOpacity onPress={handleEditUpdate} style={styles.closeButton}>
+                            <TouchableOpacity onPress={() => {handleEditUpdate(); setIsApplicationListVisible(false)}} style={styles.closeButton}>
                                 <Text style={styles.closeButtonText}>업데이트</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => setIsEditMode(false)} style={styles.closeButton}>
@@ -211,7 +211,7 @@ const StudyPostDetailModal = ({ isVisible, onClose, postDetail, fetchPosts, fetc
                                     <TouchableOpacity onPress={() => toggleEditMode()} style={styles.updateButton}>
                                         <MaterialCommunityIcons name="pencil-outline" size={24} color="#0000ff" />
                                     </TouchableOpacity>
-                                    <TouchableOpacity onPress={handleDeleteUpdate} style={styles.deleteButton}>
+                                    <TouchableOpacity onPress={()=> {handleDeleteUpdate(); setIsApplicationListVisible(false)}} style={styles.deleteButton}>
                                         <MaterialCommunityIcons name="trash-can-outline" size={24} color="#ff0000" />
                                     </TouchableOpacity>
                                 </>
@@ -266,7 +266,7 @@ const StudyPostDetailModal = ({ isVisible, onClose, postDetail, fetchPosts, fetc
                                     <Text style={styles.applyButtonText}>신청목록 보기</Text>
                                 </TouchableOpacity>
                             )}
-                            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                            <TouchableOpacity onPress={() => {onClose(); setIsApplicationListVisible(false);}} style={styles.closeButton}>
                                 <Text style={styles.closeButtonText}>닫기</Text>
                             </TouchableOpacity>
                         </>
