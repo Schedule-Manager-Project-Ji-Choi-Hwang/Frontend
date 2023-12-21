@@ -23,12 +23,19 @@ const AddStudyPostModal = ({isVisible, setAddState, setPosts, setLastPostId, fet
 
     const handleAddPost = async () => {
         try {
+            let defaultArea;
+            if (onOff) {
+                defaultArea = "온라인";
+            } else {
+                defaultArea = area;
+            }
+
             const postData = {
                 studyName: studyName,
                 tag: tag,
                 recruitMember: recruitMember,
                 onOff: onOff,
-                area: area,
+                area: defaultArea,
                 post: post
             };
             console.log(postData);
@@ -84,17 +91,18 @@ const AddStudyPostModal = ({isVisible, setAddState, setPosts, setLastPostId, fet
                         keyboardType="numeric"
                     />
                     <View style={styles.switchContainer}>
-                        <Text>Online/Offline: </Text>
+                        <Text>Offline/Online: </Text>
                         <Switch
                             value={onOff}
                             onValueChange={setOnOff}
                         />
                     </View>
                     <TextInput
-                        style={styles.input}
+                        style={[styles.input, !onOff ? styles.inputActive : styles.inputInactive]}
                         placeholder="스터디 지역"
                         value={area}
                         onChangeText={setArea}
+                        editable={!onOff} // 스위치가 온라인 상태일 때 비활성화
                     />
                     <TextInput
                         style={styles.input}
@@ -113,6 +121,15 @@ const AddStudyPostModal = ({isVisible, setAddState, setPosts, setLastPostId, fet
 };
 
 const styles = StyleSheet.create({
+    inputActive: {
+        // 활성화 상태 스타일
+    },
+    inputInactive: {
+        // 비활성화 상태 스타일
+        backgroundColor: '#e1e1e1', // 희미한 배경색
+        borderColor: '#aaa', // 희미한 테두리 색상
+        color: '#aaa', // 희미한 텍스트 색상
+    },
     closeButton: {
         position: 'absolute',
         right: 10,

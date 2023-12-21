@@ -88,6 +88,11 @@ const StudyPostDetailModal = ({ isVisible, onClose, postDetail, fetchPosts, fetc
         setEditState();
     };
 
+    const handleApply = () => {
+        console.log("신청하기 버튼 클릭됨");
+        // 신청 관련 로직 추가
+    };
+
     return (
         <Modal visible={isVisible} transparent onRequestClose={onClose}>
             <View style={styles.modalContainer}>
@@ -159,6 +164,9 @@ const StudyPostDetailModal = ({ isVisible, onClose, postDetail, fetchPosts, fetc
                             <Text style={styles.text}>온/오프라인: {postDetail.onOff ? '온라인' : '오프라인'}</Text>
                             <Text style={styles.text}>지역: {postDetail.area ? postDetail.area : '미정'}</Text>
                             <Text style={styles.text}>내용: {postDetail.post ? postDetail.post : '내용이 없어요'}</Text>
+                            <TouchableOpacity onPress={handleApply} style={styles.applyButton}>
+                                <Text style={styles.applyButtonText}>신청하기</Text>
+                            </TouchableOpacity>
                             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                                 <Text style={styles.closeButtonText}>닫기</Text>
                             </TouchableOpacity>
@@ -171,6 +179,17 @@ const StudyPostDetailModal = ({ isVisible, onClose, postDetail, fetchPosts, fetc
 };
 
 const styles = StyleSheet.create({
+    applyButton: {
+        backgroundColor: '#007bff', // 버튼 배경색
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+        marginBottom: 10, // 버튼 간격
+    },
+    applyButtonText: {
+        color: 'white', // 텍스트 색상
+        fontSize: 16, // 텍스트 크기
+    },
     input: {
         height: 40,
         marginBottom: 12,

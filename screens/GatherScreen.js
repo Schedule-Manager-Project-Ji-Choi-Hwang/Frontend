@@ -302,20 +302,27 @@ export default function GatherScreen() {
                         </View>
                     </>
                 )}
-                <FlatList
-                    data={posts}
-                    renderItem={renderItem}
-                    keyExtractor={item => item.id.toString()}
-                    onEndReached={() => {
-                        if (searchText.trim() !== '' && !searchLast) {
-                            performSearchs();
-                        } else if (!myPost && !(searchText.trim() !== '')) {
-                            fetchPosts();
-                        }
-                    }} // 리스트 끝에 도달하면 추가 게시글 로드
-                    onEndReachedThreshold={0.5} // 리스트의 하단 50%에 도달했을 때 이벤트 발생
-                    ListFooterComponent={isLoading ? <ActivityIndicator size="large" /> : null}
-                />
+                {posts.length === 0 ? (
+                    // posts 배열이 비어있을 때 표시될 텍스트
+                    <View style={styles.centeredView}>
+                        <Text style={styles.noPostsText}>내가 작성한 글이 없어요</Text>
+                    </View>
+                ) : (
+                    <FlatList
+                        data={posts}
+                        renderItem={renderItem}
+                        keyExtractor={item => item.id.toString()}
+                        onEndReached={() => {
+                            if (searchText.trim() !== '' && !searchLast) {
+                                performSearchs();
+                            } else if (!myPost && !(searchText.trim() !== '')) {
+                                fetchPosts();
+                            }
+                        }} // 리스트 끝에 도달하면 추가 게시글 로드
+                        onEndReachedThreshold={0.5} // 리스트의 하단 50%에 도달했을 때 이벤트 발생
+                        ListFooterComponent={isLoading ? <ActivityIndicator size="large" /> : null}
+                    />
+                    )}
                 <AddStudyPostModal
                     isVisible={isModalVisible}
                     setAddState={() => setAddState(true)}
@@ -361,7 +368,7 @@ export default function GatherScreen() {
                     onStateChange={onFABStateChange}
                     onPress={() => {
                         if (FABStatus) {
-                            setFABStatus(!open);
+                            setFABStatus(!FABStatus);
                         }
                     }}
                 />
@@ -372,6 +379,16 @@ export default function GatherScreen() {
 }
 
 const styles = StyleSheet.create({
+    centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    noPostsText: {
+        fontSize: 18,
+        color: 'gray'
+        // 기타 필요한 스타일 속성 추가
+    },
     searchSection: {
         flexDirection: 'row',
         padding: 10,
