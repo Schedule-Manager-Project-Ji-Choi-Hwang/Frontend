@@ -37,6 +37,7 @@ export default function LoginScreen({ navigation }) {
                 setLoading(false);
                 if (response.status === 204) {
                     AsyncStorage.setItem('AccessToken', response.headers['authorization']);
+                    AsyncStorage.setItem('RefreshToken', response.headers['refresh-token']);
                     navigation.replace('Navigation');
                 }
             })
