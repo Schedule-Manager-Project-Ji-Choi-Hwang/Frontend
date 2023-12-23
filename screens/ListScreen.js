@@ -47,7 +47,6 @@ const StudyCard = ({ item, onLeave }) => {
                                 />
                             }
                         >
-                            <Menu.Item onPress={() => { console.log('Edit'); }} title="편집" />
                             <Menu.Item onPress={leaveStudy} title="탈퇴" />
                         </Menu>
                 )}

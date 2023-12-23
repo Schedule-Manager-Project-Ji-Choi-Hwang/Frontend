@@ -1,5 +1,16 @@
 import React, {useEffect, useState} from 'react';
-import {Modal, View, Text, TouchableOpacity, StyleSheet, TextInput, Switch, ScrollView, Button} from 'react-native';
+import {
+    Modal,
+    View,
+    Text,
+    TouchableOpacity,
+    StyleSheet,
+    TextInput,
+    Switch,
+    ScrollView,
+    Button,
+    Alert
+} from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Config from '../config/config';
 import axios from 'axios';
@@ -121,17 +132,26 @@ const StudyPostDetailModal = ({ isVisible, onClose, postDetail, fetchPosts, fetc
     const handleApplicationAccept = async (applicationMemberId) => {
         try {
             const token = await AsyncStorage.getItem('AccessToken');
-            const response = await axios.post(`${Config.MY_IP}:8080/study-board/${postDetail.id}/application-member/${applicationMemberId}/study-member/add`, {},{
+            await axios.post(`${Config.MY_IP}:8080/study-board/${postDetail.id}/application-member/${applicationMemberId}/study-member/add`, {},{
                 headers: { Authorization: token }
             });
         } catch (error) {
-            console.error('Error post:', error);
+            const message = error.response?.data?.errorMessage;
+            console.log(message);
+            console.log(error.response.data.errorMessage);
+            if (error.response.data.errorMessage === message) {
+                console.log('동작');
+                Alert.alert('스터디 회원을 더이상 추가할 수 없습니다.', message);
+            }else{
+                console.error('Error post:', error);
+            }
         }
     }
 
     const handleAccept = async (applicationMemberId) => {
         await handleApplicationAccept(applicationMemberId);
         await handleApplicationList();
+        await fetchpost(postDetail.id);
     }
 
     const handleApplicationRefuse = async (applicationMemberId) => {
@@ -217,11 +237,11 @@ const StudyPostDetailModal = ({ isVisible, onClose, postDetail, fetchPosts, fetc
                                 </>
                             )}
                             <Text style={styles.text}>분야: {postDetail.tag ? postDetail.tag : '없음'}</Text>
-                            <Text style={styles.text}>모집 인원: {postDetail.recruitMember}</Text>
+                            <Text style={styles.text}>모집 인원: {postDetail.currentMember} / {postDetail.recruitMember}</Text>
                             <Text style={styles.text}>온/오프라인: {postDetail.onOff ? '온라인' : '오프라인'}</Text>
                             <Text style={styles.text}>지역: {postDetail.area ? postDetail.area : '미정'}</Text>
                             <Text style={styles.text}>내용: {postDetail.post ? postDetail.post : '내용이 없어요'}</Text>
-                            {!postDetail.applicationAuthority && !postDetail.studyMemberAuthority && (
+                            {!postDetail.applicationAuthority && !postDetail.studyMemberAuthority && !(postDetail.currentMember === postDetail.recruitMember) && (
                                 <TouchableOpacity onPress={handleApplication} style={styles.applyButton}>
                                     <Text style={styles.applyButtonText}>신청하기</Text>
                                 </TouchableOpacity>

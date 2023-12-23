@@ -46,7 +46,7 @@ const StudyItem = ({ item, onPressItem, myPost, setPosts, setLastPostId, setDele
                     <View style={styles.postDetails}>
                         <Text style={styles.postTitle}>{item.studyName}</Text>
                         <Text style={styles.textStyle}>태그: {item.tag ? item.tag : '없음'}</Text>
-                        <Text style={styles.textStyle}>모집 인원: {item.recruitMember}</Text>
+                        <Text style={styles.textStyle}>모집 인원: {item.currentMember} / {item.recruitMember}</Text>
                         <Text style={styles.textStyle}>온/오프라인: {item.onOff ? '온라인' : '오프라인'}</Text>
                         <Text style={styles.textStyle}>지역: {item.area ? item.area : '미정'}</Text>
                     </View>
