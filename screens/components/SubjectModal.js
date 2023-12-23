@@ -1,10 +1,62 @@
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useState } from "react";
 import { Modal, View, StyleSheet } from "react-native";
 import { Button, TextInput, IconButton } from "react-native-paper";
+import DropDownPicker from "react-native-dropdown-picker";
+import Config from "../../config/config";
 
-const SubjectModal = ({ visible, onClose }) => {
+
+const SubjectModal = ({ visible, onClose, onSubjectAdded }) => {
     const [subjectTitle, setSubjectTitle] = useState('');
     const [openModal, setOpenModal] = useState(false);
+    const [openDropDown, setOpenDropDown] = useState(false);
+    const [selectedColor, setSelectedColor] = useState(null);
+    const colors = [
+        { label: "Black", value: "black", icon: () => <View style={getStyleForColor('black')} /> },
+        { label: "White", value: "white", icon: () => <View style={getStyleForColor('white')} /> },
+        { label: "Blue", value: "blue", icon: () => <View style={getStyleForColor('blue')} /> },
+        { label: "Pink", value: "pink", icon: () => <View style={getStyleForColor('pink')} /> },
+        { label: "Red", value: "red", icon: () => <View style={getStyleForColor('red')} /> },
+        { label: "Yellow", value: "yellow", icon: () => <View style={getStyleForColor('yellow')} /> },
+    ];
+
+    const getStyleForColor = (color) => ({
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        backgroundColor: color,
+        marginRight: 10,
+    });
+    
+    const handleClose = () => {
+        setSubjectTitle('');
+        setSelectedColor(null);
+        onClose();
+    };
+
+    const handleAdd = async () => {
+        let dataToSend = {
+            subjectName: subjectTitle,
+            color: selectedColor
+        }
+        try {
+            const token = await AsyncStorage.getItem('AccessToken');
+            if (!token) {
+                console.log('No access token');
+                return null;
+            }
+            await axios.post(`${Config.MY_IP}:8080/subjects/add`, dataToSend, {
+                headers: { Authorization: token }
+            });
+            onSubjectAdded()
+            handleClose();
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+
     return (
         <Modal
             animationType="fade"
@@ -18,7 +70,7 @@ const SubjectModal = ({ visible, onClose }) => {
                             icon="close"
                             iconColor="grey"
                             size={25}
-                            onPress={onClose}
+                            onPress={handleClose}
                         />
                     </View>
                     <View style={Styles.modalContent}>
@@ -26,31 +78,26 @@ const SubjectModal = ({ visible, onClose }) => {
                             style={Styles.modalInput}
                             value={subjectTitle}
                             placeholder="과목 이름"
-                            textColor="black"
                             mode="outlined"
                             onChangeText={subjectTitle => setSubjectTitle(subjectTitle)}
                         />
-
-                        {/* <View>
-                            <DropDownPicker
-                                style={Styles.dropDown}
-                                theme="LIGHT"
-                                open={openDropDown}
-                                setOpen={setOpenDropDown}
-                                items={items}
-                                setItems={setItems}
-                                value={select}
-                                setValue={setSelect}
-                                placeholder={placeholder}
-                                autoScroll={true}
-                            />
-                        </View> */}
+                        <DropDownPicker
+                            style={Styles.dropDown}
+                            theme="LIGHT"
+                            open={openDropDown}
+                            setOpen={setOpenDropDown}
+                            items={colors}
+                            setValue={setSelectedColor}
+                            value={selectedColor}
+                            placeholder="색상 선택"
+                            autoScroll={true}
+                        />
                     </View>
                     <View style={Styles.modalFooter}>
                         <Button
-                            style={{ flex: 1, zIndex: 1 }}
+                            style={{ flex: 1 }}
                             mode='contained'
-                            onPress={()=> console.log("등록")}
+                            onPress={handleAdd}
                         >
                             등록</Button>
                     </View>
@@ -86,7 +133,14 @@ const Styles = StyleSheet.create({
     modalHeader: {
         alignItems: "flex-end",
     },
+    modalContent: {
+        zIndex: 1000
+    },
+    dropDown: {
+        marginTop: 5
+    },
     modalFooter: {
+        zIndex: 1,
         margin: 5,
         justifyContent: "space-around",
         flexDirection: "row",

@@ -2,63 +2,151 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { View, Text, Modal, StyleSheet } from "react-native";
-import { Button, TextInput, IconButton, Portal, Provider, SegmentedButtons } from "react-native-paper";
+import { Button, TextInput, IconButton, Portal, Provider, RadioButton, SegmentedButtons, Divider } from "react-native-paper";
 import { DatePickerModal } from 'react-native-paper-dates';
 import DropDownPicker from "react-native-dropdown-picker";
 import Config from "../../config/config";
+import { useNavigation } from "@react-navigation/native";
 
-const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeholder }) => {
+const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeholder, onScheduleEdit }) => {
     const [title, setTitle] = useState('');
-    const [startDate, setStartDate] = useState("시작 날짜");
-    const [endDate, setEndDate] = useState("종료 날짜");
+    const [startDate, setStartDate] = useState(new Date());
+    const [endDate, setEndDate] = useState(new Date());
     const [openStartDatePicker, setOpenStartDatePicker] = useState(false);
     const [openEndDatePicker, setOpenEndDatePicker] = useState(false);
-    const [period, setPeriod] = useState("");
+    const [repeat, setRepeat] = useState("");
     const [openList, setOpenList] = useState(false);
     const [select, setSelect] = useState(null);
     const [items, setItems] = useState([]);
+    // const [subjectItems, setSubjectItems] = useState([]);
+    // const [studyItems, setStudyItems] = useState([])
     const [openDropDown, setOpenDropDown] = useState(false);
 
+    const [scheduleType, setScheduleType] = useState('single'); // 'single' 또는 'range'
+    const navigation = useNavigation();
+
+    const renderScheduleOptions = () => {
+        if (scheduleType === 'single') {
+            return (
+                <Button
+                    onPress={() => setOpenStartDatePicker(true)}>
+                    {formatDate(startDate)}
+                </Button>
+            );
+        } else {
+            return (
+                <View>
+                    <Button
+                        onPress={() => setOpenStartDatePicker(true)}>
+                        {formatDate(startDate)}
+                    </Button>
+                    <Text>~</Text>
+                    <Button
+                        onPress={() => setOpenEndDatePicker(true)}>
+                        {formatDate(endDate)}
+                    </Button>
+                    <SegmentedButtons
+                        value={repeat}
+                        onValueChange={setRepeat}
+                        buttons={[
+                            {
+                                value: 'DAILY',
+                                label: '매일',
+                            },
+                            {
+                                value: 'WEEKLY',
+                                label: '매주',
+                            },
+                            {
+                                value: 'MONTHLY',
+                                label: '매월'
+                            },
+                        ]}
+                    />
+                </View>
+            );
+        }
+    };
+
     const handleClose = () => {
-        onClose();
         setSelect(null);
         setTitle('');
-        setPeriod("");
-        setStartDate("시작 날짜");
-        setEndDate("종료 날짜");
+        setRepeat("");
+        setStartDate(new Date());
+        setEndDate(new Date());
+        onClose();
     }
 
-    const handleAdd = () => {
-        console.log("Add Schedule");
-        // let dataToSend = {
-        //     "scheduleName" : title,
-        //     "repeat" : period,
 
-        // }
+    const handleAdd = async () => {
+        let dataToSend;
+        if (isPersonal === true) {
+            if (scheduleType === "single") {
+                dataToSend = {
+                    scheduleName: title,
+                    period: formatDate(startDate)
+                };
+            } else {
+                dataToSend = {
+                    scheduleName: title,
+                    startDate: formatDate(startDate),
+                    endDate: formatDate(endDate),
+                    repeat: repeat
+                }
+            }
+        } else {
+            if (scheduleType === "single") {
+                dataToSend = {
+                    studyScheduleName: title,
+                    period: formatDate(startDate)
+                };
+            } else {
+                dataToSend = {
+                    studyScheduleName: title,
+                    startDate: formatDate(startDate),
+                    endDate: formatDate(endDate),
+                    repeat: repeat
+                };
+            }
+        }
+
+        try {
+            const token = await AsyncStorage.getItem('AccessToken');
+            if (!token) {
+                console.log('No access token');
+                return null;
+            }
+
+            if (isPersonal === true) {
+                await axios.post(`${Config.MY_IP}:8080/subjects/${select}/schedules/add`, dataToSend, {
+                    headers: { Authorization: token }
+                });
+                onScheduleEdit();
+                handleClose();
+            } else {
+                await axios.post(`${Config.MY_IP}:8080/study-board/${select}/study-schedule/add`, dataToSend, {
+                    headers: { Authorization: token }
+                });
+                onScheduleEdit();
+                handleClose();
+            }
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     const handleStartDateConfirm = (params) => {
         setOpenStartDatePicker(false);
-        const formattedDate = formatDate(params.date);
-        setStartDate(formattedDate);
+        setStartDate(params.date);
     }
 
     const handleEndDateConfirm = (params) => {
         setOpenEndDatePicker(false);
-        const formattedDate = formatDate(params.date);
-        setEndDate(formattedDate);
+        setEndDate(params.date);
     }
 
-    const parseDate = (date) => {
-        if (date && date.includes('-')) {
-            const [year, month, day] = date.split('-').map(Number);
-            return new Date(year, month - 1, day);
-        }
-        return new Date();
-    };
-
     const formatDate = (date) => {
-        if (!date) return '';
+        if (!(date instanceof Date)) return '';
 
         const year = date.getFullYear();
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -70,8 +158,19 @@ const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeho
     const subjectData = (data) => {
         const formattedItems = data.map(subject => ({
             label: subject.subjectName,
-            value: subject.subjectId
+            value: subject.subjectId,
+            icon: () => (
+                <View
+                    style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: 10,
+                        backgroundColor: subject.color,
+                        marginRight: 10
+                    }} />
+            )
         }));
+        console.log("subjectData : ", formattedItems);
         setItems(formattedItems);
     }
 
@@ -80,6 +179,7 @@ const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeho
             label: study.studyPostName,
             value: study.studyPostId
         }));
+        console.log("groupStudyData : ", formattedItems);
         setItems(formattedItems);
     }
 
@@ -118,9 +218,14 @@ const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeho
         }
     }
 
+
     useEffect(() => {
         fetchDataList();
     }, [openDropDown]);
+
+    useEffect(() => {
+        setTitle(scheduleTitle);
+    }, [scheduleTitle]);
 
     return (
         <Provider>
@@ -143,69 +248,43 @@ const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeho
                             <View style={Styles.modalContent}>
                                 <TextInput
                                     style={Styles.modalInput}
-                                    value={scheduleTitle}
+                                    value={title}
                                     placeholder="일정 제목"
-                                    textColor="black"
-                                    mode="outlined"
-                                    onChangeText={scheduleTitle => setTitle(scheduleTitle)}
+                                    onChangeText={title => setTitle(title)}
                                 />
-                                <View style={Styles.contentDate}>
-                                    <Button
-                                        style={Styles.contentBtn}
-                                        labelStyle={{ color: "grey", fontSize: 15 }}
-                                        mode='outlined'
-                                        onPress={() => setOpenStartDatePicker(true)}
-                                    // onPress={() => console.log("setStartDate")}
-                                    >
-                                        {startDate}
-                                    </Button>
-                                    <DatePickerModal
-                                        animationType="slide"
-                                        locale="en"
-                                        mode="single"
-                                        visible={openStartDatePicker}
-                                        onDismiss={() => setOpenStartDatePicker(false)}
-                                        date={parseDate(startDate)}
-                                        onConfirm={handleStartDateConfirm}
-                                    />
-                                    <Text style={{ fontSize: 15, marginTop: 12, padding: 3 }}>~</Text>
-                                    <Button
-                                        style={Styles.contentBtn}
-                                        labelStyle={{ color: "grey", fontSize: 15 }}
-                                        mode='outlined'
-                                        onPress={() => setOpenEndDatePicker(true)}
-                                    // onPress={() => console.log("setEndDate")}
-                                    >
-                                        {endDate}
-                                    </Button>
-                                    <DatePickerModal
-                                        animationType="slide"
-                                        locale="en"
-                                        mode="single"
-                                        visible={openEndDatePicker}
-                                        onDismiss={() => setOpenEndDatePicker(false)}
-                                        date={parseDate(endDate)}
-                                        onConfirm={handleEndDateConfirm}
-                                    />
-                                </View>
-                                <SegmentedButtons
-                                    style={{ marginTop: 5 }}
-                                    value={period}
-                                    onValueChange={setPeriod}
-                                    buttons={[
-                                        {
-                                            value: 'DAILY',
-                                            label: '매일',
-                                        },
-                                        {
-                                            value: 'WEEKLY',
-                                            label: '매주',
-                                        },
-                                        {
-                                            value: 'MONTHLY',
-                                            label: '매월'
-                                        },
-                                    ]}
+                                <Divider
+                                    style={Styles.divider}
+                                    horizontalInset={true}
+                                />
+                                <RadioButton.Group
+                                    onValueChange={newValue => setScheduleType(newValue)}
+                                    value={scheduleType}>
+                                    <View style={Styles.radioButtonContainer}>
+                                        <RadioButton value="single" />
+                                        <Text>단일 일정</Text>
+                                        <RadioButton value="range" />
+                                        <Text>범위 일정</Text>
+                                    </View>
+                                </RadioButton.Group>
+                                {renderScheduleOptions()}
+                                <DatePickerModal
+                                    animationType="slide"
+                                    locale="en"
+                                    mode="single"
+                                    visible={openStartDatePicker}
+                                    onDismiss={() => setOpenStartDatePicker(false)}
+                                    date={startDate}
+                                    onConfirm={handleStartDateConfirm}
+                                />
+
+                                <DatePickerModal
+                                    animationType="slide"
+                                    locale="en"
+                                    mode="single"
+                                    visible={openEndDatePicker}
+                                    onDismiss={() => setOpenEndDatePicker(false)}
+                                    date={endDate}
+                                    onConfirm={handleEndDateConfirm}
                                 />
                                 <View>
                                     <DropDownPicker
@@ -222,6 +301,10 @@ const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeho
                                     />
                                 </View>
                             </View>
+                            <Divider
+                                style={Styles.divider}
+                                horizontalInset={true}
+                            />
                             <View style={Styles.modalFooter}>
                                 <Button
                                     style={{ flex: 1, zIndex: 1 }}
@@ -267,6 +350,11 @@ const Styles = StyleSheet.create({
     modalContent: {
         zIndex: 1000
     },
+    radioButtonContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-around',
+    },
     contentDate: {
         justifyContent: "space-around",
         flexDirection: "row"
@@ -277,6 +365,10 @@ const Styles = StyleSheet.create({
     },
     dropDown: {
         marginTop: 5,
+    },
+    divider: {
+        backgroundColor: "black",
+        marginTop: 5
     },
     modalFooter: {
         margin: 5,

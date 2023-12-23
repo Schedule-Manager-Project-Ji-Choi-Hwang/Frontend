@@ -35,6 +35,7 @@ export default function ScheduleScreen({ navigation }) {
     const [currenPeriod, setCurrentPeriod] = useState('');
     const [currenScheduleId, setCurrenScheduleId] = useState('');
     const [isPersonal, setIsPersonal] = useState(true) // 개인 일정 추가, 스터디 일정 추가 구분하기 위한 state
+    const [currentColor, setCurrentColor] = useState('');
     const [currentIsPersonal, setCurrentIsPersonal] = useState(''); // 개인 일정, 스터디 일정 구분하기 위한 state
     const [scheduleCardModal, setScheduleCardModal] = useState(false);
     const [subjectAddModal, setSubjectAddModal] = useState(false);
@@ -88,6 +89,7 @@ export default function ScheduleScreen({ navigation }) {
                 headers: { Authorization: token }
             });
             return response.data;
+
         } catch (error) {
             console.error('Error fetching data: ', error);
         }
@@ -109,6 +111,7 @@ export default function ScheduleScreen({ navigation }) {
                 if ('subjectId' in subject) { // 현재 순회중인 객체가 개인 과목일 경우.
                     const subjectId = subject.subjectId;
                     const subjectName = subject.subjectName;
+                    const subjectColor = subject.color;
                     const schedules = subject.schedules;
 
                     schedules.forEach(schedule => { // 현재 순회중인 객체의 일정 리스트를 순회
@@ -118,6 +121,7 @@ export default function ScheduleScreen({ navigation }) {
                         scheduleArray.push({ // 스케쥴 리스트에 현재 순회중인 일정 데이터 객체 형태로 추가
                             subjectId: subjectId,
                             subjectName: subjectName,
+                            color: subjectColor,
                             scheduleId: scheduleId,
                             scheduleName: scheduleName,
                             period: period,
@@ -144,7 +148,7 @@ export default function ScheduleScreen({ navigation }) {
                     });
                 }
             })
-            // console.log(scheduleArray);
+            console.log(scheduleArray);
             setEvents(scheduleArray);
         } catch (error) {
             console.error('error : ', error);
@@ -159,11 +163,30 @@ export default function ScheduleScreen({ navigation }) {
             setCurrentPeriod(item.period);
             setCurrenScheduleId(item.scheduleId);
             setCurrentIsPersonal(item.isPersonal);
+            setCurrentColor(item.color);
         }}>
-            <Card key={item.scheduleId} style={{ margin: 10 }}>
-                <Card.Title title={item.scheduleName} />
+            <Card
+                key={item.scheduleId}
+                style={{
+                    margin: 10,
+                    borderWidth: 2,
+                    borderColor: item.isPersonal ? 'transparent' : 'red',
+                }}>
+                <Card.Title
+                    title={item.scheduleName}
+                    {...(item.isPersonal && item.color && {
+                        left: (props) => (
+                            <View {...props} style={{
+                                width: 20,
+                                height: 20,
+                                borderRadius: 10,
+                                backgroundColor: item.color,
+                                marginRight: 10
+                            }} />
+                        )
+                    })} />
                 <Card.Content>
-                    <Text style={{ color: 'white' }}>{item.period}</Text>
+                    <Text style={{ color: 'white' }}>{item.subjectName}</Text>
                 </Card.Content>
             </Card>
         </Pressable>
@@ -229,7 +252,7 @@ export default function ScheduleScreen({ navigation }) {
         <Provider>
             <Portal>
                 <View style={Styles.container}>
-                    <Header 
+                    <Header
                         label={"공부일정관리앱"}
                     />
                     <Calendar
@@ -268,6 +291,7 @@ export default function ScheduleScreen({ navigation }) {
                         onClose={() => setScheduleCardModal(false)}
                         onScheduleEdit={onScheduleEdit} // 일정 수정 및 삭제 시 실행될 콜백함수 지정
                         scheduleName={currentScheduleName}
+                        color={currentColor}
                         period={currenPeriod}
                         scheduleId={currenScheduleId}
                         subjectId={currentSubjectId}
@@ -276,6 +300,7 @@ export default function ScheduleScreen({ navigation }) {
                     <AddScheduleModal
                         visible={scheduleAddModal}
                         scheduleTitle={scheduleTitle}
+                        onScheduleEdit={onScheduleEdit}
                         onClose={() => setScheduleAddModal(false)}
                         isPersonal={isPersonal}
                         placeholder={"과목을 선택하세요."}
@@ -283,6 +308,7 @@ export default function ScheduleScreen({ navigation }) {
                     <AddScheduleModal
                         visible={groupStudyModal}
                         scheduleTitle={studyTitle}
+                        onScheduleEdit={onScheduleEdit}
                         onClose={() => setGroupStudyModal(false)}
                         isPersonal={() => setIsPersonal(false)}
                         placeholder={"스터디를 선택하세요."} />

@@ -40,9 +40,11 @@ const SubjectListScreen = () => {
         data.forEach(subject => {
             const subjectName = subject.subjectName;
             const subjectId = subject.subjectId;
+            const subjectColor = subject.color;
             subjectArray.push({
                 subjectId: subjectId,
-                subjectName: subjectName
+                subjectName: subjectName,
+                color: subjectColor
             });
         });
         setItems(subjectArray);
@@ -62,6 +64,15 @@ const SubjectListScreen = () => {
                 <Card style={{ margin: 10 }}>
                     <Card.Title
                         title={item.subjectName}
+                        left={(props) => (
+                            <View {...props} style={{
+                                width: 20,
+                                height: 20,
+                                borderRadius: 10,
+                                backgroundColor: item.color, // 이곳에 과목 색상 정보를 사용합니다.
+                                marginRight: 10
+                            }} />
+                        )}
                         right={() => (
                             <>
                                 <IconButton
@@ -84,6 +95,10 @@ const SubjectListScreen = () => {
         );
     };
 
+    const refreshSubjectData = () => {
+        fetchSubjectData();
+    };
+
 
     return (
         <Provider>
@@ -102,8 +117,9 @@ const SubjectListScreen = () => {
                             size={25}
                             onPress={() => setAddModal(true)}
                         />
-                        <SubjectModal 
+                        <SubjectModal
                             visible={addModal}
+                            onSubjectAdded={refreshSubjectData}
                             onClose={() => setAddModal(false)}
                         />
                     </View>
