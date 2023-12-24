@@ -23,7 +23,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import Header from "./components/Header";
 import ScheduleCardModal from "./components/ScheduleCardModal";
-import AddScheduleModal from "./components/AddScheduleModal";
+import ScheduleAddModal from "./components/ScheduleAddModal";
 import Config from "../config/config";
 
 export default function ScheduleScreen({ navigation }) {
@@ -169,8 +169,7 @@ export default function ScheduleScreen({ navigation }) {
                 key={item.scheduleId}
                 style={{
                     margin: 10,
-                    borderWidth: 2,
-                    borderColor: item.isPersonal ? 'transparent' : 'red',
+                    backgroundColor: item.isPersonal ? '#25232a' : '#62662a',
                 }}>
                 <Card.Title
                     title={item.scheduleName}
@@ -297,7 +296,7 @@ export default function ScheduleScreen({ navigation }) {
                         subjectId={currentSubjectId}
                         isPersonal={currentIsPersonal} // 수정 모달에서 사용할 개인ㄹ 및 스터디 구별하는 값
                     />
-                    <AddScheduleModal
+                    <ScheduleAddModal
                         visible={scheduleAddModal}
                         scheduleTitle={scheduleTitle}
                         onScheduleEdit={onScheduleEdit}
@@ -305,7 +304,7 @@ export default function ScheduleScreen({ navigation }) {
                         isPersonal={isPersonal}
                         placeholder={"과목을 선택하세요."}
                     />
-                    <AddScheduleModal
+                    <ScheduleAddModal
                         visible={groupStudyModal}
                         scheduleTitle={studyTitle}
                         onScheduleEdit={onScheduleEdit}
@@ -408,11 +407,6 @@ const Styles = StyleSheet.create({
         flexDirection: 'column',
         alignItems: 'flex-start',
         marginBottom: 15,
-        textAlign: 'center',
-    },
-    textStyle: {
-        color: 'black',
-        fontWeight: 'bold',
         textAlign: 'center',
     }
 })

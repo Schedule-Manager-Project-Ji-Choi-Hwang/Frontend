@@ -1,15 +1,14 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, View, StyleSheet } from "react-native";
 import { Button, TextInput, IconButton } from "react-native-paper";
 import DropDownPicker from "react-native-dropdown-picker";
 import Config from "../../config/config";
 
 
-const SubjectModal = ({ visible, onClose, onSubjectAdded }) => {
+const SubjectModal = ({ visible, onClose, onSubjectAdded, placeholder, editingSubject }) => {
     const [subjectTitle, setSubjectTitle] = useState('');
-    const [openModal, setOpenModal] = useState(false);
     const [openDropDown, setOpenDropDown] = useState(false);
     const [selectedColor, setSelectedColor] = useState(null);
     const colors = [
@@ -21,6 +20,17 @@ const SubjectModal = ({ visible, onClose, onSubjectAdded }) => {
         { label: "Yellow", value: "yellow", icon: () => <View style={getStyleForColor('yellow')} /> },
     ];
 
+    useEffect(() => {
+        if (editingSubject) {
+            console.log(editingSubject.color)
+            setSubjectTitle(editingSubject.subjectName);
+            setSelectedColor(editingSubject.color);
+        } else {
+            setSubjectTitle('');
+            setSelectedColor(null);
+        }
+    }, [editingSubject]);
+
     const getStyleForColor = (color) => ({
         width: 20,
         height: 20,
@@ -28,33 +38,42 @@ const SubjectModal = ({ visible, onClose, onSubjectAdded }) => {
         backgroundColor: color,
         marginRight: 10,
     });
-    
+
     const handleClose = () => {
         setSubjectTitle('');
         setSelectedColor(null);
         onClose();
     };
 
-    const handleAdd = async () => {
+    const handleAction = async () => {
         let dataToSend = {
             subjectName: subjectTitle,
             color: selectedColor
-        }
+        };
+        console.log(dataToSend);
+
         try {
             const token = await AsyncStorage.getItem('AccessToken');
             if (!token) {
                 console.log('No access token');
-                return null;
+                return;
             }
-            await axios.post(`${Config.MY_IP}:8080/subjects/add`, dataToSend, {
-                headers: { Authorization: token }
-            });
-            onSubjectAdded()
+
+            if (editingSubject) {
+                await axios.patch(`${Config.MY_IP}:8080/subjects/${editingSubject.subjectId}/edit`, dataToSend, {
+                    headers: { Authorization: token }
+                });
+            } else {
+                await axios.post(`${Config.MY_IP}:8080/subjects/add`, dataToSend, {
+                    headers: { Authorization: token }
+                });
+            }
+            onSubjectAdded();
             handleClose();
         } catch (error) {
-            console.log(error);
+            console.log('Error:', error);
         }
-    }
+    };
 
 
     return (
@@ -77,7 +96,7 @@ const SubjectModal = ({ visible, onClose, onSubjectAdded }) => {
                         <TextInput
                             style={Styles.modalInput}
                             value={subjectTitle}
-                            placeholder="과목 이름"
+                            placeholder={placeholder}
                             mode="outlined"
                             onChangeText={subjectTitle => setSubjectTitle(subjectTitle)}
                         />
@@ -87,8 +106,8 @@ const SubjectModal = ({ visible, onClose, onSubjectAdded }) => {
                             open={openDropDown}
                             setOpen={setOpenDropDown}
                             items={colors}
-                            setValue={setSelectedColor}
                             value={selectedColor}
+                            setValue={setSelectedColor}
                             placeholder="색상 선택"
                             autoScroll={true}
                         />
@@ -97,9 +116,10 @@ const SubjectModal = ({ visible, onClose, onSubjectAdded }) => {
                         <Button
                             style={{ flex: 1 }}
                             mode='contained'
-                            onPress={handleAdd}
+                            onPress={handleAction}
                         >
-                            등록</Button>
+                            {editingSubject ? '수정' : '등록'}
+                        </Button>
                     </View>
                 </View>
             </View>

@@ -11,6 +11,7 @@ const SubjectListScreen = () => {
     const [items, setItems] = useState([]);
     const [selectedSubject, setSelectSubject] = useState(null);
     const [addModal, setAddModal] = useState(false);
+    const [editingSubject, setEditingSubject] = useState(null);
 
     useEffect(() => {
         fetchSubjectData();
@@ -84,8 +85,8 @@ const SubjectListScreen = () => {
                                     onDismiss={closeMenu}
                                     anchor={item.subjectId}
                                 >
-                                    <Menu.Item onPress={() => { console.log('Edit'); }} title="편집" />
-                                    <Menu.Item onPress={() => { console.log('Delete') }} title="삭제" />
+                                    <Menu.Item onPress={() => handleEdit(item)} title="편집" />
+                                    <Menu.Item onPress={() => handleDelete(item.subjectId)} title="삭제" />
                                 </Menu>
                             </>
                         )}
@@ -98,6 +99,29 @@ const SubjectListScreen = () => {
     const refreshSubjectData = () => {
         fetchSubjectData();
     };
+
+    const handleEdit = (subject) => {
+        setEditingSubject(subject);
+        setAddModal(true);
+        closeMenu();
+    }
+
+    const handleDelete = async (subjectId) => {
+        try {
+            const token = await AsyncStorage.getItem('AccessToken');
+            if (!token) {
+                console.log('No access token');
+                return;
+            }
+
+            await axios.delete(`${Config.MY_IP}:8080/subjects/${subjectId}/delete`, {
+                headers: { Authorization: token }
+            });
+            refreshSubjectData();
+        } catch (error) {
+            console.log('Error', error);
+        }
+    }
 
 
     return (
@@ -119,8 +143,12 @@ const SubjectListScreen = () => {
                         />
                         <SubjectModal
                             visible={addModal}
+                            onClose={() => {
+                                setAddModal(false);
+                                setEditingSubject(null); // 모달 닫기 시 편집 상태 초기화
+                            }}
                             onSubjectAdded={refreshSubjectData}
-                            onClose={() => setAddModal(false)}
+                            editingSubject={editingSubject} // 편집할 과목의 정보 전달
                         />
                     </View>
                     <Divider
