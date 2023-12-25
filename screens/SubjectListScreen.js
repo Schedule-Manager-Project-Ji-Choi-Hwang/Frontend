@@ -51,10 +51,6 @@ const SubjectListScreen = () => {
         setItems(subjectArray);
     }
 
-    const openMenu = (subjectId) => {
-        setSelectSubject(subjectId);
-    };
-
     const closeMenu = () => {
         setSelectSubject(null);
     };
@@ -75,20 +71,19 @@ const SubjectListScreen = () => {
                             }} />
                         )}
                         right={() => (
-                            <>
-                                <IconButton
-                                    icon="dots-vertical"
-                                    onPress={() => openMenu(item.subjectId)}
-                                />
-                                <Menu
-                                    visible={selectedSubject === item.subjectId}
-                                    onDismiss={closeMenu}
-                                    anchor={item.subjectId}
-                                >
-                                    <Menu.Item onPress={() => handleEdit(item)} title="편집" />
-                                    <Menu.Item onPress={() => handleDelete(item.subjectId)} title="삭제" />
-                                </Menu>
-                            </>
+                            <Menu
+                                visible={selectedSubject === item.subjectId}
+                                onDismiss={closeMenu}
+                                anchor={
+                                    <IconButton
+                                        icon="dots-vertical"
+                                        onPress={() => setSelectSubject(item.subjectId)}
+                                    />
+                                }
+                            >
+                                <Menu.Item onPress={() => handleEdit(item)} title="편집" />
+                                <Menu.Item onPress={() => handleDelete(item.subjectId)} title="삭제" />
+                            </Menu>
                         )}
                     />
                 </Card>
@@ -143,12 +138,13 @@ const SubjectListScreen = () => {
                         />
                         <SubjectModal
                             visible={addModal}
+                            placeholder={editingSubject ? editingSubject.subjectName : "과목 명을 입력하세요."}
                             onClose={() => {
                                 setAddModal(false);
-                                setEditingSubject(null); // 모달 닫기 시 편집 상태 초기화
+                                setEditingSubject(null);
                             }}
                             onSubjectAdded={refreshSubjectData}
-                            editingSubject={editingSubject} // 편집할 과목의 정보 전달
+                            editingSubject={editingSubject}
                         />
                     </View>
                     <Divider

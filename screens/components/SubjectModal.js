@@ -22,7 +22,6 @@ const SubjectModal = ({ visible, onClose, onSubjectAdded, placeholder, editingSu
 
     useEffect(() => {
         if (editingSubject) {
-            console.log(editingSubject.color)
             setSubjectTitle(editingSubject.subjectName);
             setSelectedColor(editingSubject.color);
         } else {
@@ -50,7 +49,6 @@ const SubjectModal = ({ visible, onClose, onSubjectAdded, placeholder, editingSu
             subjectName: subjectTitle,
             color: selectedColor
         };
-        console.log(dataToSend);
 
         try {
             const token = await AsyncStorage.getItem('AccessToken');
