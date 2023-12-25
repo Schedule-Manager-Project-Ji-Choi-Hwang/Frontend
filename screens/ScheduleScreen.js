@@ -1,29 +1,14 @@
-import React, { useState, useEffect, useCallback } from "react";
-import {
-    View,
-    Modal,
-    Text,
-    Pressable,
-    StyleSheet,
-    FlatList,
-} from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, Pressable, StyleSheet, FlatList } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { Ionicons } from "@expo/vector-icons";
-import {
-    Button,
-    FAB,
-    Portal,
-    Provider,
-    TextInput,
-    RadioButton,
-    Card,
-} from "react-native-paper";
-import { DatePickerModal, registerTranslation } from 'react-native-paper-dates';
+import { FAB, Portal, Provider, Card } from "react-native-paper";
+import { registerTranslation } from 'react-native-paper-dates';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import Header from "./components/Header";
 import ScheduleCardModal from "./components/ScheduleCardModal";
-import AddScheduleModal from "./components/AddScheduleModal";
+import ScheduleAddModal from "./components/ScheduleAddModal";
 import Config from "../config/config";
 
 export default function ScheduleScreen() {
@@ -34,23 +19,17 @@ export default function ScheduleScreen() {
     const [currentScheduleName, setCurrentScheduleName] = useState('');
     const [currenPeriod, setCurrentPeriod] = useState('');
     const [currenScheduleId, setCurrenScheduleId] = useState('');
-    const [currentIsPersonal, setCurrentIsPersonal] = useState(''); // 개인 일정, 스터디 일정 구분하기 위한 state
+    const [isPersonal, setIsPersonal] = useState(true);
+    const [currentColor, setCurrentColor] = useState('');
+    const [currentIsPersonal, setCurrentIsPersonal] = useState('');
     const [scheduleCardModal, setScheduleCardModal] = useState(false);
-    const [subjectAddModal, setSubjectAddModal] = useState(false);
     const [scheduleAddModal, setScheduleAddModal] = useState(false);
     const [groupStudyModal, setGroupStudyModal] = useState(false);
     const [FABStatus, setFABStatus] = useState(false);
     const [scheduleTitle, setScheduleTitle] = useState('');
     const [studyTitle, setStudyTitle] = useState('');
-    const [groupStudyTitle, setGroupStudyTitle] = useState('');
-    const [date, setDate] = useState(undefined);
-    const [range, setRange] = useState({ startDate: undefined, endDate: undefined });
-    const [checked, setChecked] = useState('first');
-    const [openSingle, setOpenSingle] = useState(false);
-    const [openRange, setOpenRange] = useState(false);
     const [markedDates, setMarkedDates] = useState({})
 
-    // 페이지에 처음 접근 시 오늘 날짜를 클릭, 자동으로 오늘 날짜의 일정 데이터들을 출력
     useEffect(() => {
         const today = new Date();
         const yyyy = today.getFullYear();
@@ -68,8 +47,6 @@ export default function ScheduleScreen() {
         onDayPress({ dateString: formattedToday });
     }, []);
 
-    // 일정 카드를 눌러 수정 및 삭제하였을 때, 모달창을 닫기 전, 이전 선택한 날짜를 클릭
-    // 수정 및 삭제 시, 즉시 서버에 요청하여 마지막으로 클릭한 날짜의 변경된 데이터를 기준으로 화면을 출력 (즉, 화면 갱신)
     const onScheduleEdit = async () => {
         if (selected) {
             await onDayPress({ dateString: selected });
@@ -87,6 +64,7 @@ export default function ScheduleScreen() {
                 headers: { Authorization: token }
             });
             return response.data;
+
         } catch (error) {
             console.error('Error fetching data: ', error);
         }
@@ -101,49 +79,49 @@ export default function ScheduleScreen() {
                 console.log("오늘은 일정이 없어요");
             }
             const scheduleArray = [];
-            const subjects = dateData.data; // 과목 및 스터디 리스트
-            console.log(`날짜: ${day.dateString}, 일정: ${subjects}`);
+            const subjects = dateData.data;
 
-            subjects.forEach(subject => { // 과목 및 스터디 리스트를 순회
-                if ('subjectId' in subject) { // 현재 순회중인 객체가 개인 과목일 경우.
+            subjects.forEach(subject => {
+                if ('subjectId' in subject) {
                     const subjectId = subject.subjectId;
                     const subjectName = subject.subjectName;
+                    const subjectColor = subject.color;
                     const schedules = subject.schedules;
 
-                    schedules.forEach(schedule => { // 현재 순회중인 객체의 일정 리스트를 순회
+                    schedules.forEach(schedule => {
                         const scheduleId = schedule.scheduleId;
                         const scheduleName = schedule.scheduleName;
                         const period = schedule.period;
-                        scheduleArray.push({ // 스케쥴 리스트에 현재 순회중인 일정 데이터 객체 형태로 추가
-                            subjectId : subjectId,
-                            subjectName : subjectName,
-                            scheduleId : scheduleId,
-                            scheduleName : scheduleName,
-                            period : period,
-                            isPersonal : true // 개인 과목의 일정인 경우 해당 속성 true
+                        scheduleArray.push({
+                            subjectId: subjectId,
+                            subjectName: subjectName,
+                            color: subjectColor,
+                            scheduleId: scheduleId,
+                            scheduleName: scheduleName,
+                            period: period,
+                            isPersonal: true
                         });
                     })
-                } else { // 현재 순회중인 객체가 스터디 객체인 경우
+                } else {
                     const studyPostId = subject.studyPostId;
                     const studyName = subject.studyName;
                     const studySchedules = subject.studySchedules;
 
-                    studySchedules.forEach(studySchedule => { // 현재 순회중인 객체의 일정 리스트를 순회
+                    studySchedules.forEach(studySchedule => {
                         const studyScheduleId = studySchedule.studyScheduleId;
                         const studyScheduleName = studySchedule.studyScheduleName;
                         const period = studySchedule.period;
-                        scheduleArray.push({ // 스케쥴 리스트에 현재 순회중인 일정 데이터 객체 형태로 추가
-                            subjectId : studyPostId,
-                            subjectName : studyName,
-                            scheduleId : studyScheduleId,
-                            scheduleName : studyScheduleName,
-                            period : period,
-                            isPersonal : false // 스터디 그룹의 일정인 경우 해당 속성 false
+                        scheduleArray.push({
+                            subjectId: studyPostId,
+                            subjectName: studyName,
+                            scheduleId: studyScheduleId,
+                            scheduleName: studyScheduleName,
+                            period: period,
+                            isPersonal: false
                         });
                     });
                 }
             })
-            console.log(scheduleArray);
             setEvents(scheduleArray);
         } catch (error) {
             console.error('error : ', error);
@@ -158,16 +136,33 @@ export default function ScheduleScreen() {
             setCurrentPeriod(item.period);
             setCurrenScheduleId(item.scheduleId);
             setCurrentIsPersonal(item.isPersonal);
+            setCurrentColor(item.color);
         }}>
-            <Card key={item.scheduleId} style={{ margin: 10 }}>
-                <Card.Title title={item.scheduleName} />
+            <Card
+                key={item.scheduleId}
+                style={{
+                    margin: 10,
+                    backgroundColor: item.isPersonal ? '#25232a' : '#62662a',
+                }}>
+                <Card.Title
+                    title={item.scheduleName}
+                    {...(item.isPersonal && item.color && {
+                        left: (props) => (
+                            <View {...props} style={{
+                                width: 20,
+                                height: 20,
+                                borderRadius: 10,
+                                backgroundColor: item.color,
+                                marginRight: 10
+                            }} />
+                        )
+                    })} />
                 <Card.Content>
-                    <Text style={{ color: 'white' }}>{item.period}</Text>
+                    <Text style={{ color: 'white' }}>{item.subjectName}</Text>
                 </Card.Content>
             </Card>
         </Pressable>
     );
-
 
     const onFABStateChange = ({ open }) => setFABStatus(open);
 
@@ -200,41 +195,18 @@ export default function ScheduleScreen() {
         close: 'Close',
     })
 
-    const onDismissSingle = useCallback(() => {
-        setOpenSingle(false);
-    }, [setOpenSingle]);
-
-    const onDismissRange = useCallback(() => {
-        setOpenRange(false);
-    }, [setOpenRange]);
-
-    const onConfirmSingle = useCallback(
-        (params) => {
-            setOpenSingle(false);
-            setDate(params.date);
-        },
-        [setOpenSingle, setDate],
-    );
-
-    const onConfirmRange = useCallback(
-        ({ startDate, endDate }) => {
-            setOpenRange(false);
-            setRange({ startDate, endDate });
-        },
-        [setOpenRange, setRange],
-    )
-
     return (
         <Provider>
             <Portal>
                 <View style={Styles.container}>
-                    <Header />
+                    <Header
+                        label={"공부일정관리앱"}
+                    />
                     <Calendar
                         style={Styles.calendar}
                         markingType={'multi-dot'}
                         renderArrow={renderArrow}
                         onDayPress={onDayPress}
-                        // current={today} // 이 설정은 기본값이 사용자의 현재 시점(Month)로 설정된다고 함.
                         markedDates={{
                             ...markedDates,
                             [selected]: {
@@ -245,7 +217,7 @@ export default function ScheduleScreen() {
                             },
                         }}
                     />
-                    { // 일정 데이터가 하나도 없다면 텍스트가 보이고, 있다면 카드들이 출력됨
+                    {
                         events.length === 0 ? (
                             <View style={Styles.noEventsView}>
                                 <Text style={Styles.noEventsText}>오늘은 일정이 없어요</Text>
@@ -254,7 +226,6 @@ export default function ScheduleScreen() {
                             <FlatList
                                 data={events}
                                 renderItem={renderScheduleCard}
-                                // 기존값이 겹친다고 나와서 현재 일정 이름 + id 값 사용중, 추후에 더 확실한 고유값 사용하도록 변경해야함
                                 keyExtractor={(item, index) => item.scheduleName.toString() + item.scheduleId.toString() || index.toString()}
                                 contentContainerStyle={{ flexGrow: 1 }}
                             />
@@ -263,77 +234,33 @@ export default function ScheduleScreen() {
                     <ScheduleCardModal
                         visible={scheduleCardModal}
                         onClose={() => setScheduleCardModal(false)}
-                        onScheduleEdit={onScheduleEdit} // 일정 수정 및 삭제 시 실행될 콜백함수 지정
+                        onScheduleEdit={onScheduleEdit}
                         scheduleName={currentScheduleName}
+                        color={currentColor}
                         period={currenPeriod}
                         scheduleId={currenScheduleId}
                         subjectId={currentSubjectId}
-                        isPersonal={currentIsPersonal} // 수정 모달에서 사용할 개인 및 스터디 구별하는 값
+                        isPersonal={currentIsPersonal}
                     />
-                    <AddScheduleModal
+                    <ScheduleAddModal
                         visible={scheduleAddModal}
                         scheduleTitle={scheduleTitle}
+                        onScheduleEdit={onScheduleEdit}
                         onClose={() => setScheduleAddModal(false)}
+                        isPersonal={isPersonal}
+                        placeholder={"과목을 선택하세요."}
                     />
-                    <Modal
-                        animationType="fade"
+                    <ScheduleAddModal
                         visible={groupStudyModal}
-                        transparent={true}
-                    >
-                        <View style={Styles.modalMainView}>
-                            <View style={Styles.modalView}>
-                                <TextInput
-                                    style={Styles.modalInput}
-                                    value={scheduleTitle}
-                                    placeholder="제목"
-                                    textColor="black"
-                                    mode="outlined"
-                                    onChangeText={groupStudyTitle => setGroupStudyTitle(groupStudyTitle)}
-                                />
-                                <Button
-                                    style={Styles.addScheduleBtn}
-                                    onPress={() => setOpenSingle(true)}
-                                >Select single date</Button>
-                                <DatePickerModal
-                                    locale="ko"
-                                    mode='single'
-                                    visible={openSingle}
-                                    onDismiss={onDismissSingle}
-                                    date={date}
-                                    onConfirm={onConfirmSingle}
-                                />
-                                <Button
-                                    style={Styles.addScheduleBtn}
-                                    onPress={() => setOpenRange(true)}
-                                >Select range date</Button>
-                                <DatePickerModal
-                                    locale="ko"
-                                    mode='range'
-                                    visible={openRange}
-                                    onDismiss={onDismissRange}
-                                    onConfirm={onConfirmRange}
-                                    startDate={range.startDate}
-                                    endDate={range.endDate}
-                                />
-                                <Pressable onPress={() => { setGroupStudyModal(false) }}>
-                                    <Text style={Styles.textStyle}>close</Text>
-                                </Pressable>
-                            </View>
-                        </View>
-                    </Modal>
+                        scheduleTitle={studyTitle}
+                        onScheduleEdit={onScheduleEdit}
+                        onClose={() => setGroupStudyModal(false)}
+                        isPersonal={() => setIsPersonal(false)}
+                        placeholder={"스터디를 선택하세요."} />
                     <FAB.Group
                         open={FABStatus}
                         icon={FABStatus ? 'close' : 'plus'}
                         actions={[
-                            {
-                                icon: 'book-plus',
-                                label: '과목 등록',
-                                onPress: () => {
-                                    if (FABStatus) {
-                                        naviagion.replace("AddSubjectPage");
-                                    }
-                                }
-                            },
                             {
                                 icon: 'calendar-edit',
                                 label: '개인 일정',
@@ -426,11 +353,6 @@ const Styles = StyleSheet.create({
         flexDirection: 'column',
         alignItems: 'flex-start',
         marginBottom: 15,
-        textAlign: 'center',
-    },
-    textStyle: {
-        color: 'black',
-        fontWeight: 'bold',
         textAlign: 'center',
     }
 })
