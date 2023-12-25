@@ -6,6 +6,7 @@ import Navigation from './screens/Navigation';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import 'react-native-get-random-values';
+import './axiosConfig'
 
 const Stack = createStackNavigator();
 
