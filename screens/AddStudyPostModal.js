@@ -12,7 +12,7 @@ const AddStudyPostModal = ({isVisible, setAddState, setPosts, setLastPostId, fet
     const [area, setArea] = useState('');
     const [post, setPost] = useState('');
 
-    const resetForm = () => {
+    const resetForm = () => { // .
         setStudyName('');
         setTag(undefined);
         setRecruitMember('');
