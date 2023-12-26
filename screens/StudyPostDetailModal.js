@@ -226,16 +226,6 @@ const StudyPostDetailModal = ({ isVisible, onClose, postDetail, fetchPosts, fetc
                     ) : (
                         <>
                             <Text style={styles.title}>{postDetail.studyName}</Text>
-                            {postDetail.authority && (
-                                <>
-                                    <TouchableOpacity onPress={() => toggleEditMode()} style={styles.updateButton}>
-                                        <MaterialCommunityIcons name="pencil-outline" size={24} color="#0000ff" />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={()=> {handleDeleteUpdate(); setIsApplicationListVisible(false)}} style={styles.deleteButton}>
-                                        <MaterialCommunityIcons name="trash-can-outline" size={24} color="#ff0000" />
-                                    </TouchableOpacity>
-                                </>
-                            )}
                             <Text style={styles.text}>분야: {postDetail.tag ? postDetail.tag : '없음'}</Text>
                             <Text style={styles.text}>모집 인원: {postDetail.currentMember} / {postDetail.recruitMember}</Text>
                             <Text style={styles.text}>온/오프라인: {postDetail.onOff ? '온라인' : '오프라인'}</Text>

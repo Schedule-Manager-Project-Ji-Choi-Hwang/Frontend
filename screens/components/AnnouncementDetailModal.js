@@ -128,7 +128,7 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, updateAnnou
                     announcementId : response.data.data.announcementId,
                     announcementTitle : response.data.data.announcementTitle,
                     announcementPost : response.data.data.announcementPost,
-                    announcementCreateDate : response.data.data.createDate
+                    announcementCreateDate : response.data.data.createDate,
                 });
 
                 setCommentData(response.data.data.commentList);
@@ -149,18 +149,6 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, updateAnnou
                     <>
                         <View style={styles.titleContainer}>
                             <Text style={styles.title}>{announcementData.announcementTitle}</Text>
-                            <IconButton
-                                icon="pencil"
-                                onPress={() => {
-                                    setEditedPost(announcementData.announcementPost);
-                                    setIsEditingPost(true);
-                                }}
-                            />
-
-                            <IconButton
-                                icon="delete"
-                                onPress={handleDelete}
-                            />
                         </View>
                         <View style={styles.separator} />
                         <Text style={styles.createDate}>{announcementData.announcementCreateDate}</Text>
@@ -199,18 +187,20 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, updateAnnou
                                         </View>
 
                                         {/* Edit 및 Delete 버튼 추가 */}
-                                        <View style={styles.commentActionButtons}>
-                                            <Button
-                                                onPress={() => {
-                                                    setIsEditing(true);
-                                                    setEditingCommentId(comment.commentId);
-                                                    setEditedComment(comment.comment);
-                                                }}
-                                            >Edit</Button>
-                                            <Button
-                                                onPress={() => deleteComment(comment.commentId)}
-                                            >Delete</Button>
-                                        </View>
+                                        {comment.myAuthority && (
+                                            <View style={styles.commentActionButtons}>
+                                                <Button
+                                                    onPress={() => {
+                                                        setIsEditing(true);
+                                                        setEditingCommentId(comment.commentId);
+                                                        setEditedComment(comment.comment);
+                                                    }}
+                                                >수정</Button>
+                                                <Button
+                                                    onPress={() => deleteComment(comment.commentId)}
+                                                >삭제</Button>
+                                            </View>
+                                        )}
                                     </View>
                                     {/* 특정 댓글 바로 아래에 댓글 수정 폼 표시 */}
                                     {isEditing && editingCommentId === comment.commentId && (
@@ -315,10 +305,16 @@ const styles = StyleSheet.create({
         elevation: 2,
         position: 'relative', // 상대적 위치 설정
     },
-    commentActionButtons: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        alignItems: 'center',
+    // commentActionButtons: {
+    //     flexDirection: 'row',
+    //     justifyContent: 'flex-end',
+    //     alignItems: 'center',
+    // },
+    commentActionButtons: { // 최신
+        flexDirection: 'column', // 버튼을 위아래로 배치
+        justifyContent: 'flex-start',
+        alignItems: 'flex-end', // 오른쪽 정렬
+        paddingTop: 5,
     },
     commentRow: {
         flexDirection: 'row',
@@ -332,16 +328,25 @@ const styles = StyleSheet.create({
     commentTextContainer: {
         flex: 1, // 대부분의 공간을 차지
     },
-    commentAuthor: {
+    // commentAuthor: {
+    //     fontWeight: 'bold',
+    //     marginBottom: 5,
+    // },
+    // commentCreateDate: {
+    //     position: 'absolute', // 절대적 위치 설정
+    //     top: 10, // 상단에서 10의 여백
+    //     right: 10, // 우측에서 10의 여백
+    //     fontSize: 12,
+    //     color: '#666',
+    // },
+    commentAuthor: { // 최신
         fontWeight: 'bold',
-        marginBottom: 5,
+        marginBottom: 2, // 작성자와 날짜 사이의 간격을 줄임
     },
     commentCreateDate: {
-        position: 'absolute', // 절대적 위치 설정
-        top: 10, // 상단에서 10의 여백
-        right: 10, // 우측에서 10의 여백
         fontSize: 12,
         color: '#666',
+        marginBottom: 5, // 날짜와 댓글 텍스트 사이의 간격
     },
     commentText: {
         fontSize: 14,
