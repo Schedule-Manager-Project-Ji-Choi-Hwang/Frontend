@@ -6,6 +6,7 @@ import Config from '../../config/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AnnouncementDetailModal from "./AnnouncementDetailModal";
 import AddAnnouncementModal from "./AddAnnouncementModal";
+import EditAnnouncementModal from "./EditAnnouncementModal";
 
 const StudyModal = ({ visible, hideModal, studyData }) => {
     const [announcements, setAnnouncements] = useState([]);
@@ -13,9 +14,14 @@ const StudyModal = ({ visible, hideModal, studyData }) => {
     const [myAuthority, setMyAuthority] = useState(false);
     const [menuVisible, setMenuVisible] = useState({});
 
+    const [postMenuVisible, setPostMenuVisible] = useState({});
+
     const [announcementModalVisible, setAnnouncementModalVisible] = useState(false);
     const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
+    const [selectedEditAnnouncement, setSelectedEditAnnouncement] = useState(null);
+
     const [addAnnouncementModalVisible, setAddAnnouncementModalVisible] = useState(false);
+    const [editAnnouncementModalVisible, setEditAnnouncementModalVisible] = useState(false);
 
 
     useEffect(() => {
@@ -37,13 +43,30 @@ const StudyModal = ({ visible, hideModal, studyData }) => {
         setAnnouncementModalVisible(true);
     };
 
+    const openEditAnnouncementModal = (announcement, index) => {
+        setSelectedEditAnnouncement(announcement);
+        setEditAnnouncementModalVisible(true);
+        togglePostMenuVisibility(index);
+    }
+
     const closeAnnouncementModal = () => {
         setAnnouncementModalVisible(false);
     };
 
+    const closeEditAnnouncementModal = () => {
+        setEditAnnouncementModalVisible(false);
+    }
+
 
     const toggleMenuVisibility = (index) => {
         setMenuVisible(prevState => ({
+            ...prevState,
+            [index]: !prevState[index]
+        }));
+    };
+
+    const togglePostMenuVisibility = (index) => {
+        setPostMenuVisible(prevState => ({
             ...prevState,
             [index]: !prevState[index]
         }));
@@ -104,6 +127,25 @@ const StudyModal = ({ visible, hideModal, studyData }) => {
         setAddAnnouncementModalVisible(false);
     };
 
+    const deleteAnnouncement = async (announcementId) => {
+        try {
+            console.log(announcements);
+            console.log(announcementId);
+            const token = await AsyncStorage.getItem('AccessToken');
+            await axios.delete(`${Config.MY_IP}:8080/study-board/${studyData.id}/study-announcements/${announcementId}/delete`,
+                { headers: { Authorization: token } }
+            );
+        } catch (error) {
+            console.error("Delete Error:", error);
+        }
+    };
+
+    const handleDelete = async (announcementId, index) => {
+        await deleteAnnouncement(announcementId);
+        togglePostMenuVisibility(index);
+        await fetchAnnouncementsAndStudyMembers();
+    };
+
     return (
         <Portal>
             <Modal visible={visible} onDismiss={hideModal} contentContainerStyle={styles.modalContainer}>
@@ -122,18 +164,40 @@ const StudyModal = ({ visible, hideModal, studyData }) => {
                     <View style={styles.modalView}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                             <Text style={styles.sectionTitle}>공지사항</Text>
-                            <IconButton
-                                icon="plus"
-                                size={24}
-                                onPress={openAddAnnouncementModal}
-                            />
+                            {myAuthority && (
+                                <IconButton
+                                    icon="plus"
+                                    size={24}
+                                    onPress={openAddAnnouncementModal}
+                                />
+                            )}
                         </View>
                         <View style={styles.separator} />
                         {/* 공지 목록을 카드 형태로 표시 */}
                         {announcements.map((announcement, index) => (
                             <TouchableOpacity key={index} onPress={() => openAnnouncementModal(announcement)}>
-                                <Card style={styles.card}>
-                                    <Card.Title title={announcement.announcementTitle} />
+                                <Card key={index} style={styles.card}>
+                                    <Card.Title
+                                        title={announcement.announcementTitle}
+                                        right={(props) =>
+                                            myAuthority && (
+                                                <Menu
+                                                    visible={postMenuVisible[index]}
+                                                    onDismiss={() => togglePostMenuVisibility(index)}
+                                                    anchor={
+                                                        <IconButton
+                                                            {...props}
+                                                            icon="dots-vertical"
+                                                            onPress={() => togglePostMenuVisibility(index)}
+                                                        />
+                                                    }
+                                                >
+                                                    <Menu.Item onPress={() => openEditAnnouncementModal(announcement, index)} title="편집" />
+                                                    <Menu.Item onPress={() => handleDelete(announcement.announcementId, index)} title="삭제" />
+                                                </Menu>
+                                            )
+                                        }
+                                    />
                                     <Card.Content>
                                         <Text>{announcement.createDate}</Text>
                                     </Card.Content>
@@ -188,6 +252,13 @@ const StudyModal = ({ visible, hideModal, studyData }) => {
                 announcement={selectedAnnouncement}
                 updateAnnouncement={updateAnnouncement}
                 studyPostId = {studyData.id}
+            />
+            <EditAnnouncementModal
+                visible={editAnnouncementModalVisible}
+                onDismiss={closeEditAnnouncementModal}
+                studyPostId={studyData.id}
+                announcement={selectedEditAnnouncement}
+                updateAnnouncement={updateAnnouncement}
             />
         </Portal>
     );

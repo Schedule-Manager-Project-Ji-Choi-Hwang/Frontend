@@ -17,6 +17,8 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, updateAnnou
     const [isEditingPost, setIsEditingPost] = useState(false);
     const [editedPost, setEditedPost] = useState(announcementData.announcementPost || "");
 
+    const [commentErrorMessage, setCommentErrorMessage] = useState(false);
+    const [editCommentErrorMessage, setEditCommentErrorMessage] = useState(false);
 
     useEffect(() => {
         if (visible) {
@@ -71,6 +73,13 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, updateAnnou
 
     const submitComment = async () => {
         try {
+            if (!newComment.trim()) {
+                setCommentErrorMessage(true);
+                return;
+            } else {
+                setCommentErrorMessage(false);
+            }
+
             const token = await AsyncStorage.getItem('AccessToken');
             await axios.post(`${Config.MY_IP}:8080/study-board/${studyPostId}/study-announcements/${announcement.announcementId}/comment/add`,
                 { comment: newComment },
@@ -87,6 +96,13 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, updateAnnou
     // 댓글 수정 함수
     const submitEditComment = async (commentId) => {
         try {
+            if (!editedComment.trim()) {
+                setEditCommentErrorMessage(true);
+                return;
+            } else {
+                setEditCommentErrorMessage(false);
+            }
+
             const token = await AsyncStorage.getItem('AccessToken');
             await axios.patch(`${Config.MY_IP}:8080/study-board/study-announcements/${announcement.announcementId}/comment/${editingCommentId}/edit`,
                 { comment: editedComment },
@@ -128,7 +144,7 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, updateAnnou
                     announcementId : response.data.data.announcementId,
                     announcementTitle : response.data.data.announcementTitle,
                     announcementPost : response.data.data.announcementPost,
-                    announcementCreateDate : response.data.data.createDate
+                    announcementCreateDate : response.data.data.createDate,
                 });
 
                 setCommentData(response.data.data.commentList);
@@ -141,103 +157,113 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, updateAnnou
 
     return (
         <Modal visible={visible} onDismiss={onDismiss} transparent animationType="slide" style={{zIndex: 1500}}>
-            <View style={styles.modalContainer}>
-                <TouchableOpacity style={styles.closeButton} onPress={onDismiss}>
-                    <IconButton icon="close" />
-                </TouchableOpacity>
-                {announcementData.announcementTitle && (
-                    <>
-                        <View style={styles.titleContainer}>
-                            <Text style={styles.title}>{announcementData.announcementTitle}</Text>
-                            <IconButton
-                                icon="pencil"
-                                onPress={() => {
-                                    setEditedPost(announcementData.announcementPost);
-                                    setIsEditingPost(true);
-                                }}
-                            />
-
-                            <IconButton
-                                icon="delete"
-                                onPress={handleDelete}
-                            />
-                        </View>
-                        <View style={styles.separator} />
-                        <Text style={styles.createDate}>{announcementData.announcementCreateDate}</Text>
-                        <View style={styles.announcementBox}>
-                            {isEditingPost ? (
-                                <View style={styles.postEditContainer}>
-                                    <TextInput
-                                        style={styles.postInput}
-                                        multiline
-                                        value={editedPost}
-                                        onChangeText={setEditedPost}
-                                    />
-                                    <Button onPress={submitPostEdit}>Save Changes</Button>
-                                </View>
-                            ) : (
-                                <Text style={styles.content}>{announcementData.announcementPost}</Text>
-                            )}
-                        </View>
-                        <View style={styles.commentForm}>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="댓글을 입력해 주세요."
-                                value={newComment}
-                                onChangeText={setNewComment}
-                            />
-                            <Button onPress={submitComment} style={styles.submitButton} labelStyle={styles.submitButtonText}>등록</Button>
-                        </View>
-                        <ScrollView style={styles.commentsContainer}>
-                            {commentData.map((comment) => (
-                                <View key={comment.commentId} style={styles.comment}>
-                                    <View style={styles.commentRow}>
-                                        <View style={styles.commentTextContainer}>
-                                            <Text style={styles.commentAuthor}>{comment.nickname}</Text>
-                                            <Text style={styles.commentCreateDate}>{comment.lastModifiedDate}</Text>
-                                            <Text style={styles.commentText}>{comment.comment}</Text>
-                                        </View>
-
-                                        {/* Edit 및 Delete 버튼 추가 */}
-                                        <View style={styles.commentActionButtons}>
-                                            <Button
-                                                onPress={() => {
-                                                    setIsEditing(true);
-                                                    setEditingCommentId(comment.commentId);
-                                                    setEditedComment(comment.comment);
-                                                }}
-                                            >Edit</Button>
-                                            <Button
-                                                onPress={() => deleteComment(comment.commentId)}
-                                            >Delete</Button>
-                                        </View>
+            <View style={styles.outerModalContainer}>
+                <View style={styles.modalContainer}>
+                    <TouchableOpacity style={styles.closeButton} onPress={() => {onDismiss(); setEditCommentErrorMessage(false); setCommentErrorMessage(false)}}>
+                        <IconButton icon="close" />
+                    </TouchableOpacity>
+                    {announcementData.announcementTitle && (
+                        <>
+                            <View style={styles.titleContainer}>
+                                <Text style={styles.title}>{announcementData.announcementTitle}</Text>
+                            </View>
+                            <View style={styles.separator} />
+                            <Text style={styles.createDate}>{announcementData.announcementCreateDate}</Text>
+                            <View style={styles.announcementBox}>
+                                {isEditingPost ? (
+                                    <View style={styles.postEditContainer}>
+                                        <TextInput
+                                            style={styles.postInput}
+                                            multiline
+                                            value={editedPost}
+                                            onChangeText={setEditedPost}
+                                        />
+                                        <Button onPress={submitPostEdit}>Save Changes</Button>
                                     </View>
-                                    {/* 특정 댓글 바로 아래에 댓글 수정 폼 표시 */}
-                                    {isEditing && editingCommentId === comment.commentId && (
-                                        <View style={styles.editCommentForm}>
-                                            <TextInput
-                                                style={styles.input}
-                                                value={editedComment}
-                                                onChangeText={setEditedComment}
-                                            />
-                                            <Button
-                                                onPress={() => submitEditComment(comment.commentId)}
-                                            >
-                                                Update Comment
-                                            </Button>
+                                ) : (
+                                    <Text style={styles.content}>{announcementData.announcementPost}</Text>
+                                )}
+                            </View>
+                            {commentErrorMessage && (
+                                <>
+                                    <Text style={styles.errorText}> 댓글을 입력해 주세요!!</Text>
+                                </>
+                            )}
+                            <View style={styles.commentForm}>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="댓글을 입력해 주세요."
+                                    value={newComment}
+                                    onChangeText={setNewComment}
+                                />
+                                <Button onPress={submitComment} style={styles.submitButton} labelStyle={styles.submitButtonText}>등록</Button>
+                            </View>
+                            <ScrollView style={styles.commentsContainer}>
+                                {commentData.map((comment) => (
+                                    <View key={comment.commentId} style={styles.comment}>
+                                        <View style={styles.commentRow}>
+                                            <View style={styles.commentTextContainer}>
+                                                <Text style={styles.commentAuthor}>{comment.nickname}</Text>
+                                                <Text style={styles.commentCreateDate}>{comment.lastModifiedDate}</Text>
+                                                <Text style={styles.commentText}>{comment.comment}</Text>
+                                            </View>
+
+                                            {/* Edit 및 Delete 버튼 추가 */}
+                                            {comment.myAuthority && (
+                                                <View style={styles.commentActionButtons}>
+                                                    <Button
+                                                        onPress={() => {
+                                                            setIsEditing(true);
+                                                            setEditingCommentId(comment.commentId);
+                                                            setEditedComment(comment.comment);
+                                                        }}
+                                                    >수정</Button>
+                                                    <Button
+                                                        onPress={() => deleteComment(comment.commentId)}
+                                                    >삭제</Button>
+                                                </View>
+                                            )}
                                         </View>
-                                    )}
-                                </View>
-                            ))}
-                        </ScrollView>
-                    </>
-                )}
+                                        {/* 특정 댓글 바로 아래에 댓글 수정 폼 표시 */}
+                                        {isEditing && editingCommentId === comment.commentId && (
+                                            <View style={styles.editCommentForm}>
+                                                {editCommentErrorMessage && (
+                                                    <>
+                                                        <Text style={styles.errorText}> 댓글을 입력해 주세요!!</Text>
+                                                    </>
+                                                )}
+                                                <TextInput
+                                                    style={styles.input}
+                                                    value={editedComment}
+                                                    onChangeText={setEditedComment}
+                                                />
+                                                <Button
+                                                    onPress={() => submitEditComment(comment.commentId)}
+                                                >
+                                                    Update Comment
+                                                </Button>
+                                            </View>
+                                        )}
+                                    </View>
+                                ))}
+                            </ScrollView>
+                        </>
+                    )}
+                </View>
             </View>
         </Modal>
     );
 };
 
 const styles = StyleSheet.create({
+    errorText: {
+        color: 'red', // 빨간색 경고 메시지
+        // 추가적으로 원하는 스타일 속성
+    },
+    outerModalContainer: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', // 반투명 배경
+    },
     separator: {
         borderBottomColor: '#e0e0e0', // 선의 색상 지정
         borderBottomWidth: 1,         // 선의 두께 지정
@@ -315,10 +341,16 @@ const styles = StyleSheet.create({
         elevation: 2,
         position: 'relative', // 상대적 위치 설정
     },
-    commentActionButtons: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        alignItems: 'center',
+    // commentActionButtons: {
+    //     flexDirection: 'row',
+    //     justifyContent: 'flex-end',
+    //     alignItems: 'center',
+    // },
+    commentActionButtons: { // 최신
+        flexDirection: 'column', // 버튼을 위아래로 배치
+        justifyContent: 'flex-start',
+        alignItems: 'flex-end', // 오른쪽 정렬
+        paddingTop: 5,
     },
     commentRow: {
         flexDirection: 'row',
@@ -332,16 +364,25 @@ const styles = StyleSheet.create({
     commentTextContainer: {
         flex: 1, // 대부분의 공간을 차지
     },
-    commentAuthor: {
+    // commentAuthor: {
+    //     fontWeight: 'bold',
+    //     marginBottom: 5,
+    // },
+    // commentCreateDate: {
+    //     position: 'absolute', // 절대적 위치 설정
+    //     top: 10, // 상단에서 10의 여백
+    //     right: 10, // 우측에서 10의 여백
+    //     fontSize: 12,
+    //     color: '#666',
+    // },
+    commentAuthor: { // 최신
         fontWeight: 'bold',
-        marginBottom: 5,
+        marginBottom: 2, // 작성자와 날짜 사이의 간격을 줄임
     },
     commentCreateDate: {
-        position: 'absolute', // 절대적 위치 설정
-        top: 10, // 상단에서 10의 여백
-        right: 10, // 우측에서 10의 여백
         fontSize: 12,
         color: '#666',
+        marginBottom: 5, // 날짜와 댓글 텍스트 사이의 간격
     },
     commentText: {
         fontSize: 14,
