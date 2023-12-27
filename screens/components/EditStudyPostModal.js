@@ -120,17 +120,34 @@ const EditStudyPostModal = ({ isVisible, onDismiss, item, setPosts, setLastPostI
                             style={styles.recruitInput}
                             placeholder="모집 인원(2~20명)"
                             value={editRecruitMember}
-                            onChangeText={setEditRecruitMember}
+                            onChangeText={(text) => {
+                                const numericValue = parseInt(text);
+                                setEditRecruitMember(isNaN(numericValue) ? '' : String(numericValue));
+                            }}
                             keyboardType="numeric"
                         />
                         <TouchableOpacity
                             style={styles.counterButton}
-                            onPress={() => setEditRecruitMember(Math.max(2, editRecruitMember - 1))}>
+                            onPress={() => {
+                                setEditRecruitMember((prevRecruitMember) => {
+                                    const currentValue = parseInt(prevRecruitMember);
+                                    return !isNaN(currentValue) && currentValue > 2
+                                        ? String(currentValue - 1)
+                                        : '2'; // '2' 미만으로 내려가지 않도록 조정
+                                });
+                            }}>
                             <Text style={styles.counterButtonText}>-</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={styles.counterButton}
-                            onPress={() => setEditRecruitMember(Math.min(20, editRecruitMember + 1))}>
+                            onPress={() => {
+                                setEditRecruitMember((prevRecruitMember) => {
+                                    const currentValue = parseInt(prevRecruitMember);
+                                    return !isNaN(currentValue) && currentValue < 20
+                                        ? String(currentValue + 1)
+                                        : '20'; // '20' 초과로 올라가지 않도록 조정
+                                });
+                            }}>
                             <Text style={styles.counterButtonText}>+</Text>
                         </TouchableOpacity>
                     </View>
