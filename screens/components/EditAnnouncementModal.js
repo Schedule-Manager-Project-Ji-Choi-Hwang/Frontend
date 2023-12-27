@@ -10,6 +10,9 @@ const EditAnnouncementModal = ({ visible, onDismiss, studyPostId, announcement, 
     const [announcementTitle, setAnnouncementTitle] = useState('');
     const [announcementContent, setAnnouncementContent] = useState('');
 
+    const [errorTitleMessage, setErrorTitleMessage] = useState(false);
+    const [errorPostMessage, setErrorPostMessage] = useState(false);
+
     useEffect(() => {
         if (visible) {
             const fetchData = async () => {
@@ -44,6 +47,19 @@ const EditAnnouncementModal = ({ visible, onDismiss, studyPostId, announcement, 
     const handleEditAnnouncement = async () => {
         // 여기에서 서버에 데이터를 제출하는 로직을 구현
         try {
+            if (!announcementTitle.trim()) {
+                setErrorTitleMessage(true);
+                return;
+            } else {
+                setErrorTitleMessage(false);
+            }
+            if (!announcementContent.trim()) {
+                setErrorPostMessage(true);
+                return;
+            } else {
+                setErrorPostMessage(false);
+            }
+
             const token = await AsyncStorage.getItem('AccessToken');
             await axios.patch(`${Config.MY_IP}:8080/study-board/${studyPostId}/study-announcements/${announcementId}/edit`,
                 { announcementPost: announcementContent, announcementTitle: announcementTitle},
@@ -65,12 +81,22 @@ const EditAnnouncementModal = ({ visible, onDismiss, studyPostId, announcement, 
             <Modal visible={visible} onDismiss={onDismiss} contentContainerStyle={styles.modalContainer}>
                 <View style={styles.modalContent}>
                     <Text style={styles.modalTitle}>공지사항 수정</Text>
+                    {errorTitleMessage && (
+                        <>
+                            <Text style={styles.errorText}> 제목을 입력해 주세요!!</Text>
+                        </>
+                    )}
                     <TextInput
                         label="공지사항 제목"
                         value={announcementTitle}
                         onChangeText={text => setAnnouncementTitle(text)}
                         style={styles.input}
                     />
+                    {errorPostMessage && (
+                        <>
+                            <Text style={styles.errorText}> 내용을 입력해 주세요!!</Text>
+                        </>
+                    )}
                     <TextInput
                         label="공지사항 내용"
                         value={announcementContent}
@@ -89,6 +115,10 @@ const EditAnnouncementModal = ({ visible, onDismiss, studyPostId, announcement, 
 };
 
 const styles = StyleSheet.create({
+    errorText: {
+        color: 'red', // 빨간색 경고 메시지
+        // 추가적으로 원하는 스타일 속성
+    },
     modalContainer: {
         backgroundColor: 'white',
         padding: 20,
