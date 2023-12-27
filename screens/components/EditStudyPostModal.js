@@ -19,6 +19,12 @@ const EditStudyPostModal = ({ isVisible, onDismiss, item, setPosts, setLastPostI
     const [openAreaDropDown, setOpenAreaDropDown] = useState(false);
     const [selectedArea, setSelectedArea] = useState(item.area);
 
+    const [studyNameErrorMessage, setStudyNameErrorMessage] = useState(false);
+    const [tagErrorMessage, setTagErrorMessage] = useState(false);
+    const [recruitMemberErrorMessage, setRecruitMemberErrorMessage] = useState(false);
+    const [areaErrorMessage, setAreaErrorMessage] = useState(false);
+    const [postErrorMessage, setPostErrorMessage] = useState(false);
+
     const areas = [
         { label: '서울', value: '서울' },
         { label: '경기', value: '경기' },
@@ -55,6 +61,43 @@ const EditStudyPostModal = ({ isVisible, onDismiss, item, setPosts, setLastPostI
 
     const handleEdit = async () => {
         try {
+            if (!editStudyName.trim()) {
+                setStudyNameErrorMessage(true);
+                console.log("glglgpgpgp");
+                return false;
+            } else {
+                setStudyNameErrorMessage(false);
+            }
+
+
+            if (!selectedTag) {
+                setTagErrorMessage(true);
+                return false;
+            } else {
+                setTagErrorMessage(false);
+            }
+
+            if (!editRecruitMember.trim()) {
+                setRecruitMemberErrorMessage(true);
+                return false;
+            } else {
+                setRecruitMemberErrorMessage(false);
+            }
+
+            if (!selectedArea) {
+                setAreaErrorMessage(true);
+                return false;
+            } else {
+                setAreaErrorMessage(false);
+            }
+
+            if (!editPost.trim()) {
+                setPostErrorMessage(true);
+                return false;
+            } else {
+                setPostErrorMessage(false);
+            }
+
             let area;
             if (editOnOff == true) {
                 area = "온라인";
@@ -74,20 +117,22 @@ const EditStudyPostModal = ({ isVisible, onDismiss, item, setPosts, setLastPostI
             await axios.patch(`${Config.MY_IP}:8080/study-board/${item.id}/edit`, updatedData, {
                 headers: { Authorization: token }
             });
+
+            return true;
         } catch (error) {
             console.error('Error editing post:', error);
         }
     };
 
     const handleEditUpdate = async () => {
-        await handleEdit();
-        // await fetchpost(postDetail.id);
-        // await fetchPosts();
-        // setIsEditMode(false);
+        const result = await handleEdit();
+        if (!result) {
+            return;
+        }
         setPosts();
         setLastPostId();
         setEditState();
-        onDismiss();
+        // onDismiss();
     };
 
     return (
@@ -97,12 +142,22 @@ const EditStudyPostModal = ({ isVisible, onDismiss, item, setPosts, setLastPostI
             onRequestClose={onDismiss}>
             <View style={styles.modalContainer}>
                 <View style={styles.modalContent}>
+                    {studyNameErrorMessage && (
+                        <>
+                            <Text style={styles.errorText}> 스터디 제목을 입력해 주세요!!</Text>
+                        </>
+                    )}
                     <TextInput
                         style={styles.input}
                         placeholder="스터디 이름"
                         value={editStudyName}
                         onChangeText={setEditStudyName}
                     />
+                    {tagErrorMessage && (
+                        <>
+                            <Text style={styles.errorText}> 태그를 선택해 주세요!!</Text>
+                        </>
+                    )}
                     <DropDownPicker
                         style={{ zIndex: openTagDropDown ? 5000 : 1, position: 'relative' }}
                         containerStyle={{ zIndex: openTagDropDown ? 5000 : 1, position: 'relative' }}
@@ -115,6 +170,11 @@ const EditStudyPostModal = ({ isVisible, onDismiss, item, setPosts, setLastPostI
                         placeholder="분야 선택"
                         autoScroll={true}
                     />
+                    {recruitMemberErrorMessage && (
+                        <>
+                            <Text style={styles.errorText}> 모집 인원을 입력해 주세요!!</Text>
+                        </>
+                    )}
                     <View style={styles.counterContainer}>
                         <TextInput
                             style={styles.recruitInput}
@@ -158,6 +218,11 @@ const EditStudyPostModal = ({ isVisible, onDismiss, item, setPosts, setLastPostI
                             onValueChange={setEditOnOff}
                         />
                     </View>
+                    {areaErrorMessage && (
+                        <>
+                            <Text style={styles.errorText}> 지역을 선택해 주세요!!</Text>
+                        </>
+                    )}
                     <DropDownPicker
                         style={[
                             styles.dropDown,
@@ -175,6 +240,11 @@ const EditStudyPostModal = ({ isVisible, onDismiss, item, setPosts, setLastPostI
                         autoScroll={true}
                         disabled={editOnOff}
                     />
+                    {postErrorMessage && (
+                        <>
+                            <Text style={styles.errorText}> 내용을 입력해 주세요!!</Text>
+                        </>
+                    )}
                     <TextInput
                         style={styles.input}
                         placeholder="글을 작성해 주세요."
@@ -196,6 +266,10 @@ const EditStudyPostModal = ({ isVisible, onDismiss, item, setPosts, setLastPostI
 };
 
 const styles = StyleSheet.create({
+    errorText: {
+        color: 'red', // 빨간색 경고 메시지
+        // 추가적으로 원하는 스타일 속성
+    },
     modalContainer: {
         flex: 1,
         justifyContent: 'center',

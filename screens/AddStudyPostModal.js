@@ -19,6 +19,12 @@ const AddStudyPostModal = ({isVisible, setAddState, setPosts, setLastPostId, fet
     const [openAreaDropDown, setOpenAreaDropDown] = useState(false);
     const [selectedArea, setSelectedArea] = useState(null);
 
+    const [studyNameErrorMessage, setStudyNameErrorMessage] = useState(false);
+    const [tagErrorMessage, setTagErrorMessage] = useState(false);
+    const [recruitMemberErrorMessage, setRecruitMemberErrorMessage] = useState(false);
+    const [areaErrorMessage, setAreaErrorMessage] = useState(false);
+    const [postErrorMessage, setPostErrorMessage] = useState(false);
+
     const areas = [
         { label: '서울', value: '서울' },
         { label: '경기', value: '경기' },
@@ -60,6 +66,42 @@ const AddStudyPostModal = ({isVisible, setAddState, setPosts, setLastPostId, fet
 
     const handleAddPost = async () => {
         try {
+            if (!studyName.trim()) {
+                setStudyNameErrorMessage(true);
+                return;
+            } else {
+                setStudyNameErrorMessage(false);
+            }
+
+
+            if (!selectedTag) {
+                setTagErrorMessage(true);
+                return;
+            } else {
+                setTagErrorMessage(false);
+            }
+
+            if (!recruitMember.trim()) {
+                setRecruitMemberErrorMessage(true);
+                return;
+            } else {
+                setRecruitMemberErrorMessage(false);
+            }
+
+            if (!selectedArea) {
+                setAreaErrorMessage(true);
+                return;
+            } else {
+                setAreaErrorMessage(false);
+            }
+
+            if (!post.trim()) {
+                setPostErrorMessage(true);
+                return
+            } else {
+                setPostErrorMessage(false);
+            }
+
             let defaultArea;
             if (onOff) {
                 defaultArea = "온라인";
@@ -108,12 +150,22 @@ const AddStudyPostModal = ({isVisible, setAddState, setPosts, setLastPostId, fet
                         onPress={() => {closeModal(); resetForm();}}>
                         <Text style={styles.closeButtonText}>X</Text>
                     </TouchableOpacity>
+                    {studyNameErrorMessage && (
+                        <>
+                            <Text style={styles.errorText}> 스터디 제목을 입력해 주세요!!</Text>
+                        </>
+                    )}
                     <TextInput
                         style={styles.input}
                         placeholder="스터디 이름"
                         value={studyName}
                         onChangeText={setStudyName}
                     />
+                    {tagErrorMessage && (
+                        <>
+                            <Text style={styles.errorText}> 분야를 선택해 주세요!!</Text>
+                        </>
+                    )}
                     <DropDownPicker
                         style={{ zIndex: openTagDropDown ? 5000 : 1, position: 'relative' }}
                         containerStyle={{ zIndex: openTagDropDown ? 5000 : 1, position: 'relative' }}
@@ -126,6 +178,11 @@ const AddStudyPostModal = ({isVisible, setAddState, setPosts, setLastPostId, fet
                         placeholder="분야 선택"
                         autoScroll={true}
                     />
+                    {recruitMemberErrorMessage && (
+                        <>
+                            <Text style={styles.errorText}> 모집 인원을 입력해 주세요!!</Text>
+                        </>
+                    )}
                     <View style={styles.counterContainer}>
                         <TextInput
                             style={styles.recruitInput}
@@ -169,6 +226,11 @@ const AddStudyPostModal = ({isVisible, setAddState, setPosts, setLastPostId, fet
                             onValueChange={setOnOff}
                         />
                     </View>
+                    {areaErrorMessage && (
+                        <>
+                            <Text style={styles.errorText}> 지역을 선택해 주세요!!</Text>
+                        </>
+                    )}
                     <DropDownPicker
                         style={[
                             styles.dropDown,
@@ -186,6 +248,11 @@ const AddStudyPostModal = ({isVisible, setAddState, setPosts, setLastPostId, fet
                         autoScroll={true}
                         disabled={onOff}
                     />
+                    {postErrorMessage && (
+                        <>
+                            <Text style={styles.errorText}> 내용을 입력해 주세요!!</Text>
+                        </>
+                    )}
                     <TextInput
                         style={styles.input}
                         placeholder="글을 작성해 주세요."
@@ -203,6 +270,10 @@ const AddStudyPostModal = ({isVisible, setAddState, setPosts, setLastPostId, fet
 };
 
 const styles = StyleSheet.create({
+    errorText: {
+        color: 'red', // 빨간색 경고 메시지
+        // 추가적으로 원하는 스타일 속성
+    },
     outerContainer: {
         flex: 1,
         justifyContent: 'center',

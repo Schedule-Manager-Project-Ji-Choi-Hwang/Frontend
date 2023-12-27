@@ -17,6 +17,8 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, updateAnnou
     const [isEditingPost, setIsEditingPost] = useState(false);
     const [editedPost, setEditedPost] = useState(announcementData.announcementPost || "");
 
+    const [commentErrorMessage, setCommentErrorMessage] = useState(false);
+    const [editCommentErrorMessage, setEditCommentErrorMessage] = useState(false);
 
     useEffect(() => {
         if (visible) {
@@ -71,6 +73,13 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, updateAnnou
 
     const submitComment = async () => {
         try {
+            if (!newComment.trim()) {
+                setCommentErrorMessage(true);
+                return;
+            } else {
+                setCommentErrorMessage(false);
+            }
+
             const token = await AsyncStorage.getItem('AccessToken');
             await axios.post(`${Config.MY_IP}:8080/study-board/${studyPostId}/study-announcements/${announcement.announcementId}/comment/add`,
                 { comment: newComment },
@@ -87,6 +96,13 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, updateAnnou
     // 댓글 수정 함수
     const submitEditComment = async (commentId) => {
         try {
+            if (!editedComment.trim()) {
+                setEditCommentErrorMessage(true);
+                return;
+            } else {
+                setEditCommentErrorMessage(false);
+            }
+
             const token = await AsyncStorage.getItem('AccessToken');
             await axios.patch(`${Config.MY_IP}:8080/study-board/study-announcements/${announcement.announcementId}/comment/${editingCommentId}/edit`,
                 { comment: editedComment },
@@ -143,7 +159,7 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, updateAnnou
         <Modal visible={visible} onDismiss={onDismiss} transparent animationType="slide" style={{zIndex: 1500}}>
             <View style={styles.outerModalContainer}>
                 <View style={styles.modalContainer}>
-                    <TouchableOpacity style={styles.closeButton} onPress={onDismiss}>
+                    <TouchableOpacity style={styles.closeButton} onPress={() => {onDismiss(); setEditCommentErrorMessage(false); setCommentErrorMessage(false)}}>
                         <IconButton icon="close" />
                     </TouchableOpacity>
                     {announcementData.announcementTitle && (
@@ -168,6 +184,11 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, updateAnnou
                                     <Text style={styles.content}>{announcementData.announcementPost}</Text>
                                 )}
                             </View>
+                            {commentErrorMessage && (
+                                <>
+                                    <Text style={styles.errorText}> 댓글을 입력해 주세요!!</Text>
+                                </>
+                            )}
                             <View style={styles.commentForm}>
                                 <TextInput
                                     style={styles.input}
@@ -206,6 +227,11 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, updateAnnou
                                         {/* 특정 댓글 바로 아래에 댓글 수정 폼 표시 */}
                                         {isEditing && editingCommentId === comment.commentId && (
                                             <View style={styles.editCommentForm}>
+                                                {editCommentErrorMessage && (
+                                                    <>
+                                                        <Text style={styles.errorText}> 댓글을 입력해 주세요!!</Text>
+                                                    </>
+                                                )}
                                                 <TextInput
                                                     style={styles.input}
                                                     value={editedComment}
@@ -230,6 +256,10 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, updateAnnou
 };
 
 const styles = StyleSheet.create({
+    errorText: {
+        color: 'red', // 빨간색 경고 메시지
+        // 추가적으로 원하는 스타일 속성
+    },
     outerModalContainer: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)', // 반투명 배경
