@@ -128,7 +128,7 @@ const AddStudyPostModal = ({isVisible, setAddState, setPosts, setLastPostId, fet
                     />
                     <View style={styles.counterContainer}>
                         <TextInput
-                            style={styles.input}
+                            style={styles.recruitInput}
                             placeholder="모집 인원(2~20명)"
                             value={recruitMember}
                             onChangeText={setRecruitMember}
@@ -204,6 +204,22 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 4,
         elevation: 5,
+    },
+    recruitInput: {
+        height: 40,
+        width: '80%', // 너비
+        marginTop: 15,
+        marginBottom: 15,
+        borderWidth: 1,
+        borderColor: '#007bff',
+        padding: 10,
+        borderRadius: 5,
+        backgroundColor: '#ffffff',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.22,
+        shadowRadius: 2.22,
+        elevation: 3,
     },
     input: {
         height: 40,
@@ -281,35 +297,12 @@ const styles = StyleSheet.create({
         backgroundColor: '#e0e0e0',
         color: '#a0a0a0',
         opacity: 0.5,
-    }, //
-    // counterContainer: {
-    //     flexDirection: 'row',
-    //     alignItems: 'center',
-    //     justifyContent: 'center',
-    //     // 추가적인 스타일링...
-    // },
-    // counterButton: {
-    //     padding: 10,
-    //     backgroundColor: '#ddd',
-    //     // 추가적인 스타일링...
-    // },
-    // counterButtonText: {
-    //     fontSize: 18,
-    //     // 추가적인 스타일링...
-    // },
+    },
     counterValue: {
         marginHorizontal: 10,
         fontSize: 18,
         // 추가적인 스타일링...
     },
-    // dropDownDisabled: {
-    //     backgroundColor: '#e0e0e0', // 비활성화 상태의 배경색
-    //     color: '#a0a0a0', // 비활성화 상태의 텍스트 색상
-    //     opacity: 0.5, // 투명도 조정
-    // },
-    // dropDown: {
-    //     marginTop: 5
-    // },
     inputActive: {
         // 활성화 상태 스타일
     },
@@ -319,43 +312,6 @@ const styles = StyleSheet.create({
         borderColor: '#aaa', // 희미한 테두리 색상
         color: '#aaa', // 희미한 텍스트 색상
     },
-    // closeButton: {
-    //     position: 'absolute',
-    //     right: 10,
-    //     top: 10,
-    //     backgroundColor: '#ccc', // 버튼 배경색
-    //     borderRadius: 15,
-    //     width: 30,
-    //     height: 30,
-    //     justifyContent: 'center',
-    //     alignItems: 'center',
-    // },
-    // closeButtonText: {
-    //     color: '#333', // 텍스트 색상
-    //     fontSize: 16, // 텍스트 크기
-    // },
-    // outerContainer: {
-    //     flex: 1,
-    //     justifyContent: 'center',
-    //     alignItems: 'center',
-    //     backgroundColor: 'rgba(0, 0, 0, 0.5)', // 반투명 배경
-    // },
-    // modalView: {
-    //     width: '80%',
-    //     margin: 20,
-    //     backgroundColor: "white",
-    //     borderRadius: 20,
-    //     padding: 35,
-    //     alignItems: "center",
-    //     shadowColor: "#000",
-    //     shadowOffset: {
-    //         width: 0,
-    //         height: 2
-    //     },
-    //     shadowOpacity: 0.25,
-    //     shadowRadius: 4,
-    //     elevation: 5
-    // },
     container: {
         flex: 1,
         padding: 20,
@@ -368,39 +324,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
         elevation: 5,
-    },
-    // input: {
-    //     height: 40,
-    //     marginBottom: 12,
-    //     borderWidth: 1,
-    //     borderColor: '#007bff', // 입력 필드 테두리 색상
-    //     padding: 10,
-    //     borderRadius: 5, // 입력 필드 모서리 둥글게
-    //     backgroundColor: '#ffffff', // 입력 필드 배경색
-    //     shadowColor: '#000', // 입력 필드 그림자 색
-    //     shadowOffset: { width: 0, height: 1 },
-    //     shadowOpacity: 0.22,
-    //     shadowRadius: 2.22,
-    //     elevation: 3,
-    // },
-    // switchContainer: {
-    //     flexDirection: 'row',
-    //     alignItems: 'center',
-    //     marginBottom: 12,
-    // },
-    // button: {
-    //     backgroundColor: '#007bff', // 버튼 색상
-    //     padding: 12,
-    //     borderRadius: 8, // 버튼 모서리 둥글게
-    //     alignItems: 'center',
-    //     justifyContent: 'center',
-    //     width: '100%', // 너비 조정
-    //     marginTop: 10, // 마진 상단 추가
-    // },
-    // buttonText: {
-    //     color: 'white', // 버튼 텍스트 색상
-    //     fontSize: 16, // 텍스트 크기
-    // },
+    }
 });
 
 

@@ -141,93 +141,99 @@ const AnnouncementDetailModal = ({ visible, onDismiss, announcement, updateAnnou
 
     return (
         <Modal visible={visible} onDismiss={onDismiss} transparent animationType="slide" style={{zIndex: 1500}}>
-            <View style={styles.modalContainer}>
-                <TouchableOpacity style={styles.closeButton} onPress={onDismiss}>
-                    <IconButton icon="close" />
-                </TouchableOpacity>
-                {announcementData.announcementTitle && (
-                    <>
-                        <View style={styles.titleContainer}>
-                            <Text style={styles.title}>{announcementData.announcementTitle}</Text>
-                        </View>
-                        <View style={styles.separator} />
-                        <Text style={styles.createDate}>{announcementData.announcementCreateDate}</Text>
-                        <View style={styles.announcementBox}>
-                            {isEditingPost ? (
-                                <View style={styles.postEditContainer}>
-                                    <TextInput
-                                        style={styles.postInput}
-                                        multiline
-                                        value={editedPost}
-                                        onChangeText={setEditedPost}
-                                    />
-                                    <Button onPress={submitPostEdit}>Save Changes</Button>
-                                </View>
-                            ) : (
-                                <Text style={styles.content}>{announcementData.announcementPost}</Text>
-                            )}
-                        </View>
-                        <View style={styles.commentForm}>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="댓글을 입력해 주세요."
-                                value={newComment}
-                                onChangeText={setNewComment}
-                            />
-                            <Button onPress={submitComment} style={styles.submitButton} labelStyle={styles.submitButtonText}>등록</Button>
-                        </View>
-                        <ScrollView style={styles.commentsContainer}>
-                            {commentData.map((comment) => (
-                                <View key={comment.commentId} style={styles.comment}>
-                                    <View style={styles.commentRow}>
-                                        <View style={styles.commentTextContainer}>
-                                            <Text style={styles.commentAuthor}>{comment.nickname}</Text>
-                                            <Text style={styles.commentCreateDate}>{comment.lastModifiedDate}</Text>
-                                            <Text style={styles.commentText}>{comment.comment}</Text>
-                                        </View>
+            <View style={styles.outerModalContainer}>
+                <View style={styles.modalContainer}>
+                    <TouchableOpacity style={styles.closeButton} onPress={onDismiss}>
+                        <IconButton icon="close" />
+                    </TouchableOpacity>
+                    {announcementData.announcementTitle && (
+                        <>
+                            <View style={styles.titleContainer}>
+                                <Text style={styles.title}>{announcementData.announcementTitle}</Text>
+                            </View>
+                            <View style={styles.separator} />
+                            <Text style={styles.createDate}>{announcementData.announcementCreateDate}</Text>
+                            <View style={styles.announcementBox}>
+                                {isEditingPost ? (
+                                    <View style={styles.postEditContainer}>
+                                        <TextInput
+                                            style={styles.postInput}
+                                            multiline
+                                            value={editedPost}
+                                            onChangeText={setEditedPost}
+                                        />
+                                        <Button onPress={submitPostEdit}>Save Changes</Button>
+                                    </View>
+                                ) : (
+                                    <Text style={styles.content}>{announcementData.announcementPost}</Text>
+                                )}
+                            </View>
+                            <View style={styles.commentForm}>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="댓글을 입력해 주세요."
+                                    value={newComment}
+                                    onChangeText={setNewComment}
+                                />
+                                <Button onPress={submitComment} style={styles.submitButton} labelStyle={styles.submitButtonText}>등록</Button>
+                            </View>
+                            <ScrollView style={styles.commentsContainer}>
+                                {commentData.map((comment) => (
+                                    <View key={comment.commentId} style={styles.comment}>
+                                        <View style={styles.commentRow}>
+                                            <View style={styles.commentTextContainer}>
+                                                <Text style={styles.commentAuthor}>{comment.nickname}</Text>
+                                                <Text style={styles.commentCreateDate}>{comment.lastModifiedDate}</Text>
+                                                <Text style={styles.commentText}>{comment.comment}</Text>
+                                            </View>
 
-                                        {/* Edit 및 Delete 버튼 추가 */}
-                                        {comment.myAuthority && (
-                                            <View style={styles.commentActionButtons}>
+                                            {/* Edit 및 Delete 버튼 추가 */}
+                                            {comment.myAuthority && (
+                                                <View style={styles.commentActionButtons}>
+                                                    <Button
+                                                        onPress={() => {
+                                                            setIsEditing(true);
+                                                            setEditingCommentId(comment.commentId);
+                                                            setEditedComment(comment.comment);
+                                                        }}
+                                                    >수정</Button>
+                                                    <Button
+                                                        onPress={() => deleteComment(comment.commentId)}
+                                                    >삭제</Button>
+                                                </View>
+                                            )}
+                                        </View>
+                                        {/* 특정 댓글 바로 아래에 댓글 수정 폼 표시 */}
+                                        {isEditing && editingCommentId === comment.commentId && (
+                                            <View style={styles.editCommentForm}>
+                                                <TextInput
+                                                    style={styles.input}
+                                                    value={editedComment}
+                                                    onChangeText={setEditedComment}
+                                                />
                                                 <Button
-                                                    onPress={() => {
-                                                        setIsEditing(true);
-                                                        setEditingCommentId(comment.commentId);
-                                                        setEditedComment(comment.comment);
-                                                    }}
-                                                >수정</Button>
-                                                <Button
-                                                    onPress={() => deleteComment(comment.commentId)}
-                                                >삭제</Button>
+                                                    onPress={() => submitEditComment(comment.commentId)}
+                                                >
+                                                    Update Comment
+                                                </Button>
                                             </View>
                                         )}
                                     </View>
-                                    {/* 특정 댓글 바로 아래에 댓글 수정 폼 표시 */}
-                                    {isEditing && editingCommentId === comment.commentId && (
-                                        <View style={styles.editCommentForm}>
-                                            <TextInput
-                                                style={styles.input}
-                                                value={editedComment}
-                                                onChangeText={setEditedComment}
-                                            />
-                                            <Button
-                                                onPress={() => submitEditComment(comment.commentId)}
-                                            >
-                                                Update Comment
-                                            </Button>
-                                        </View>
-                                    )}
-                                </View>
-                            ))}
-                        </ScrollView>
-                    </>
-                )}
+                                ))}
+                            </ScrollView>
+                        </>
+                    )}
+                </View>
             </View>
         </Modal>
     );
 };
 
 const styles = StyleSheet.create({
+    outerModalContainer: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', // 반투명 배경
+    },
     separator: {
         borderBottomColor: '#e0e0e0', // 선의 색상 지정
         borderBottomWidth: 1,         // 선의 두께 지정

@@ -94,9 +94,11 @@ const styles = StyleSheet.create({
         padding: 20,
         margin: 20,
         borderRadius: 10,
+        // flex: 1 제거
+        justifyContent: 'center'
     },
     modalContent: {
-        flex: 1,
+        // flex: 1 제거
         justifyContent: 'center',
     },
     modalTitle: {
@@ -107,11 +109,14 @@ const styles = StyleSheet.create({
     },
     input: {
         marginBottom: 15,
-        backgroundColor: 'white', // TextInput의 기본 배경색 변경
+        backgroundColor: 'white',
+        borderWidth: 1, // 테두리 두께
+        borderColor: '#ddd', // 테두리 색상
+        borderRadius: 5, // 모서리 둥근 정도
     },
     button: {
         marginTop: 10,
-    },
+    }
 });
 
 export default EditAnnouncementModal;

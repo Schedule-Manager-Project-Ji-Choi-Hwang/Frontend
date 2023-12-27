@@ -117,7 +117,7 @@ const EditStudyPostModal = ({ isVisible, onDismiss, item, setPosts, setLastPostI
                     />
                     <View style={styles.counterContainer}>
                         <TextInput
-                            style={styles.input}
+                            style={styles.recruitInput}
                             placeholder="모집 인원(2~20명)"
                             value={editRecruitMember}
                             onChangeText={setEditRecruitMember}
@@ -197,6 +197,22 @@ const styles = StyleSheet.create({
         elevation: 5,
         width: '80%',
         maxHeight: '80%',
+    },
+    recruitInput: {
+        height: 40,
+        width: '80%', // 너비
+        marginTop: 15,
+        marginBottom: 15,
+        borderWidth: 1,
+        borderColor: '#007bff',
+        padding: 10,
+        borderRadius: 5,
+        backgroundColor: '#ffffff',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.22,
+        shadowRadius: 2.22,
+        elevation: 3,
     },
     input: {
         width: '100%',
