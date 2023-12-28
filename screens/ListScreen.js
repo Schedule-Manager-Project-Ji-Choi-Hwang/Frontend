@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
 import { IconButton, Card, Button, Menu, Provider } from "react-native-paper";
 import { useAuth } from "../context/AuthContext";
+import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import Config from "../config/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -73,6 +74,8 @@ const ListScreen = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedStudy, setSelectedStudy] = useState(null);
     const [isSignInModalVisible, setSignInModalVisible] = useState(false);
+
+    const navigation = useNavigation();
 
     useEffect(() => {
         const fetchData = async () => {

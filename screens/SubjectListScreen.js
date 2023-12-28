@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, FlatList, Pressable } from "react-native";
+import { View, Text, StyleSheet, FlatList, Pressable, SafeAreaView } from "react-native";
 import { Button, IconButton, Divider, Card, Menu, Provider } from "react-native-paper";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";

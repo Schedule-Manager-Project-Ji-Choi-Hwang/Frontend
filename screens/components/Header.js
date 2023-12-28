@@ -1,9 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import React, { useState } from "react";
-import { View, Text, Alert, StyleSheet } from "react-native";
+import { View, Text, Alert, SafeAreaView, StyleSheet } from "react-native";
 import { IconButton, Menu } from "react-native-paper";
 import { useAuth } from "../../context/AuthContext";
+import { useNavigation } from "@react-navigation/native";
 import PasswordChangeScreen from "../PasswordChangeScreen";
 import Config from "../../config/config";
 
@@ -11,7 +12,9 @@ const Header = ({ label }) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [pschangeModal, setPsChangeModal] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+
   const { isLoggedIn } = useAuth();
+  const navigation = useNavigation();
 
   const openMenu = () => setMenuVisible(true);
   const closeMenu = () => setMenuVisible(false);
@@ -75,33 +78,35 @@ const Header = ({ label }) => {
   }
 
   return (
-    <View style={Styles.header}>
-      <View style={{ flex: 1, justifyContent: "flex-start" }}>
-        <Text style={Styles.headerTitle}>{label}</Text>
+    <SafeAreaView>
+      <View style={Styles.header}>
+        <View style={{ flex: 1, justifyContent: "flex-start" }}>
+          <Text style={Styles.headerTitle}>{label}</Text>
+        </View>
+        <View style={{ flex: 1 }}></View>
+        {isLoggedIn && (
+          <Menu
+            visible={menuVisible}
+            onDismiss={closeMenu}
+            anchor={
+              <IconButton
+                icon="cog"
+                iconColor="grey"
+                size={25}
+                onPress={openMenu}
+              />
+            }>
+            <Menu.Item onPress={deleteAlert} title="회원탈퇴" />
+            <Menu.Item onPress={changePs} title="비밀번호 변경" />
+            <Menu.Item onPress={logout} title="로그아웃" />
+          </Menu>
+        )}
+        <PasswordChangeScreen
+          isVisible={pschangeModal}
+          onClose={() => setPsChangeModal(false)}
+        />
       </View>
-      <View style={{ flex: 1 }}></View>
-      {isLoggedIn && (
-        <Menu
-          visible={menuVisible}
-          onDismiss={closeMenu}
-          anchor={
-            <IconButton
-              icon="cog"
-              iconColor="grey"
-              size={25}
-              onPress={openMenu}
-            />
-          }>
-          <Menu.Item onPress={deleteAlert} title="회원탈퇴" />
-          <Menu.Item onPress={changePs} title="비밀번호 변경" />
-          <Menu.Item onPress={logout} title="로그아웃" />
-        </Menu>
-      )}
-      <PasswordChangeScreen
-        isVisible={pschangeModal}
-        onClose={() => setPsChangeModal(false)}
-      />
-    </View>
+    </SafeAreaView>
   );
 };
 

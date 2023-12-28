@@ -13,6 +13,7 @@ import Config from '../config/config';
 import axios from "axios";
 import { FAB, Provider } from "react-native-paper";
 import { useAuth } from '../context/AuthContext';
+import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AddStudyPostModal from "./AddStudyPostModal";
 import StudyPostDetailModal from "./StudyPostDetailModal"
@@ -39,6 +40,7 @@ export default function GatherScreen() {
     const [FABStatus, setFABStatus] = useState(false);
 
     const { isLoggedIn, setIsLoggedIn } = useAuth();
+    const navigation = useNavigation();
 
     const performSearch = async () => {
         if (isLoading) return; // 이미 로딩 중이면 추가 요청을 방지

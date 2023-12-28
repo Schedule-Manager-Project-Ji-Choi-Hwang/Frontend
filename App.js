@@ -28,15 +28,15 @@ export default function App() {
   }, []);
 
   return (
-    <AuthProvider>
-      <NavigationContainer ref={navigationRef}>
-        <Stack.Navigator initialRouteName="SplashScreen">
-          <Stack.Screen name="SplashScreen" component={SplashScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="Navigation" component={Navigation} options={{ headerShown: false }} />
+      <AuthProvider>
+        <NavigationContainer ref={navigationRef}>
+          <Stack.Navigator initialRouteName="SplashScreen">
+            <Stack.Screen name="SplashScreen" component={SplashScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="Navigation" component={Navigation} options={{ headerShown: false }} />
           </Stack.Navigator>
-        {signInModal && <SignInScreen isVisible={signInModal} onClose={() => setSignInModal(false)} />}
-      </NavigationContainer>
-    </AuthProvider>
+          {signInModal && <SignInScreen isVisible={signInModal} onClose={() => setSignInModal(false)} />}
+        </NavigationContainer>
+      </AuthProvider>
   );
 }
 

@@ -207,6 +207,7 @@ export default function ScheduleScreen() {
     };
 
     return (
+        
         <Provider>
             <Portal>
                 <View style={Styles.container}>
