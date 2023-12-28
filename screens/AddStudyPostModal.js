@@ -66,13 +66,6 @@ const AddStudyPostModal = ({isVisible, setAddState, setPosts, setLastPostId, fet
 
     const handleAddPost = async () => {
         try {
-            let defaultArea;
-            if (onOff) {
-                defaultArea = "온라인";
-            } else {
-                defaultArea = selectedArea;
-            }
-
             if (!studyName.trim()) {
                 setStudyNameErrorMessage(true);
                 return;
@@ -95,7 +88,7 @@ const AddStudyPostModal = ({isVisible, setAddState, setPosts, setLastPostId, fet
                 setRecruitMemberErrorMessage(false);
             }
 
-            if (!defaultArea) {
+            if (!selectedArea) {
                 setAreaErrorMessage(true);
                 return;
             } else {
@@ -107,6 +100,13 @@ const AddStudyPostModal = ({isVisible, setAddState, setPosts, setLastPostId, fet
                 return
             } else {
                 setPostErrorMessage(false);
+            }
+
+            let defaultArea;
+            if (onOff) {
+                defaultArea = "온라인";
+            } else {
+                defaultArea = selectedArea;
             }
 
             const postData = {
