@@ -10,12 +10,10 @@ const FindPWModal = ({ isVisible, onClose }) => {
 
     const handleFindPW = async () => {
         if (email.trim() === '' || !email.includes('@')) {
-            alert('이메일을 정확히 입력하세요.');
-            Alert.alert('이메일을 정확히 입력하세요.');
+            Alert.alert('경고', '이메일을 정확히 입력하세요.');
             return;
         } else if (id.trim() === '') {
-            alert('아이디를 입력하세요.');
-            Alert.alert('아이디를 입력하세요.');
+            Alert.alert('경고', '아이디를 입력하세요.');
             return;
         }
         let dataToSend = {

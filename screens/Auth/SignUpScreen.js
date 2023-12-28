@@ -36,28 +36,23 @@ const SignUpScreen = ({ isVisible, onClose }) => {
     const handleSubmitButton = async () => {
         setErrortext('');
         if (id.trim() === '') {
-            alert('아이디를 입력하세요.');
-            Alert.alert('아이디를 입력하세요.');
+            Alert.alert('경고', '아이디를 입력하세요.');
             return;
         }
         if (password.trim() === '') {
-            alert('비밀번호을 입력하세요.');
-            Alert.alert('비밀번호을 입력하세요.');
+            Alert.alert('경고', '비밀번호을 입력하세요.');
             return;
         }
         if (userName.trim() === '') {
-            alert('이름을 입력하세요.');
-            Alert.alert('이름을 입력하세요.');
+            Alert.alert('경고', '이름을 입력하세요.');
             return;
         }
         if (userEmail.trim() === '' || !userEmail.includes('@')) {
-            alert('이메일을 정확히 입력하세요.');
-            Alert.alert('이메일을 정확히 입력하세요.');
+            Alert.alert('경고', '이메일을 정확히 입력하세요.');
             return;
         }
         if (password !== confirmPassword) {
-            alert('비밀번호가 일치하지 않습니다.');
-            Alert.alert('비밀번호가 일치하지 않습니다.');
+            Alert.alert('경고', '비밀번호가 일치하지 않습니다.');
             return;
         }
         let dataToSend = {

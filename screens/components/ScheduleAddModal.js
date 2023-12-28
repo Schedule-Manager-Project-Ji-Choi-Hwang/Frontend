@@ -105,19 +105,15 @@ const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeho
         }
 
         if (title.trim() === '') {
-            alert("제목을 입력해주세요.");
-            Alert.alert("제목을 입력해주세요.");
+            Alert.alert("경고", "제목을 입력해주세요.");
         }
         if (isPersonal === true && select === null) {
-            alert("과목을 선택해주세요.");
-            Alert.alert("과목을 선택해주세요.");
+            Alert.alert("경고", "과목을 선택해주세요.");
         } else if (isPersonal !== true && select === null) {
-            alert("스터디를 선택해주세요.");
-            Alert.alert("스터디를 선택해주세요.");
+            Alert.alert("경고", "스터디를 선택해주세요.");
         }
         if (scheduleType != "single" && repeat.trim() === '') {
-            alert("반복 주기를 선택해주세요.");
-            Alert.alert("반복 주기를 선택해주세요.");
+            Alert.alert("경고", "반복 주기를 선택해주세요.");
         }
 
 

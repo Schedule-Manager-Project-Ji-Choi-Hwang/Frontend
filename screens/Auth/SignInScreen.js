@@ -29,13 +29,11 @@ const SignInScreen = ({ isVisible, onClose }) => {
     const handleSubmitPress = async () => {
         setErrortext('');
         if (id.trim() === '') {
-            alert('아이디를 입력하세요.');
-            Alert.alert('아이디를 입력하세요.');
+            Alert.alert('경고', '아이디를 입력하세요.');
             return;
         }
         if (password.trim() === '') {
-            alert('비밀번호를 입력하세요.');
-            Alert.alert('비밀번호를 입력하세요.');
+            Alert.alert('경고', '비밀번호를 입력하세요.');
             return;
         }
         let dataToSend = {

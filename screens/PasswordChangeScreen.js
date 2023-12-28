@@ -21,8 +21,7 @@ const PasswordChangeScreen = ({ isVisible, onClose }) => {
             await axios.patch(`${Config.MY_IP}:8080/member/edit`, dataToSend, {
                 headers: { Authorization: token }
             });
-            alert("비밀번호가 변경되었습니다.");
-            Alert.alert("비밀번호가 변경되었습니다.");
+            Alert.alert('알림', "비밀번호가 변경되었습니다.");
             onClose();
         } catch (error) {
             console.log('Error:', error);

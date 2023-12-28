@@ -54,12 +54,10 @@ const SubjectModal = ({ visible, onClose, onSubjectAdded, placeholder, editingSu
             color: selectedColor
         };
         if (subjectTitle.trim() === '') {
-            alert("과목 명을 입력하세요.");
-            Alert.alert("과목 명을 입력하세요.");
+            Alert.alert('경고', "과목 명을 입력하세요.");
         }
         if (selectedColor.trim() === '') {
-            alert("과목 색상을 선택하세요.");
-            Alert.alert("과목 색상을 선택하세요.");
+            Alert.alert('경고', "과목 색상을 선택하세요.");
         }
 
         try {

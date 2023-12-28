@@ -17,7 +17,7 @@ export default function App() {
 
   useEffect(() => {
     const handleRefreshTokenExpired = () => {
-      alert('세션이 만료되었습니다. 다시 로그인해주세요.')
+      Alert.alert('세션 만료', '다시 로그인해주세요.')
       setSignInModal(true);
     };
     authEvents.on('tokenExpired', handleRefreshTokenExpired);

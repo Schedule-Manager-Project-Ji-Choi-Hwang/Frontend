@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { View, Image, StyleSheet } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ActivityIndicator } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 

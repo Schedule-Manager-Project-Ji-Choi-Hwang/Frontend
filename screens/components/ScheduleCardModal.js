@@ -107,8 +107,7 @@ const ScheduleCardModal = ({ visible, onClose, scheduleName, period,
 
     const handleSave = async () => {
         if (editTitle.trim() === '') {
-            alert("일정 제목을 다시 입력해주세요.");
-            Alert.alert("일정 제목을 다시 입력해주세요.");
+            Alert.alert("경고", "일정 제목을 다시 입력해주세요.");
             return;
         }
         const data = await updateSchedule(scheduleId, subjectId, isPersonal);

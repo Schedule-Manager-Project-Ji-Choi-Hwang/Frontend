@@ -9,8 +9,7 @@ const FindIDModal = ({ isVisible, onClose }) => {
 
     const handleFindID = async () => {
         if (email.trim() === '' || !email.includes('@')) {
-            alert('이메일을 정확히 입력하세요.');
-            Alert.alert('이메일을 정확히 입력하세요.');
+            Alert.alert('경고', '이메일을 정확히 입력하세요.');
             return;
         }
         let dataToSend = {
@@ -19,8 +18,7 @@ const FindIDModal = ({ isVisible, onClose }) => {
         try {
             const response = await axios.post(`${Config.MY_IP}:8080/member/find-loginid`, dataToSend);
             console.log(response.data.loginId);
-            alert('아이디 찾기 성공 : '+ response.data.loginId);
-            Alert.alert('아이디 찾기 성공 : '+ response.data.loginId);
+            Alert.alert('아이디 찾기 성공', '아이디 : '+ response.data.loginId);
         } catch (error)  {
             console.log("Find ID Error : ", error);
         };
