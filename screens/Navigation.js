@@ -1,15 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-
+import { Icon } from 'react-native-paper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScheduleScreen from './ScheduleScreen';
 import SubjectListScreen from './SubjectListScreen';
 import ListScreen from './ListScreen';
 import GatherScreen from './GatherScreen';
-import { Icon } from 'react-native-paper';
 
 const Tab = createBottomTabNavigator();
 
 function BottomStack() {
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    useEffect(() => {
+        const checkLoginStatus = async () => {
+            const token = await AsyncStorage.getItem('AccessToken');
+            setIsLoggedIn(!!token);
+        };
+
+        checkLoginStatus();
+    }, []);
+
     return (
         <Tab.Navigator initialRouteName='일정'>
             <Tab.Screen
@@ -34,7 +45,7 @@ function BottomStack() {
             />
             <Tab.Screen
                 name="일정"
-                component={ScheduleScreen}
+                children={() => <ScheduleScreen isLoggedIn={isLoggedIn} />}
                 options={{
                     headerShown: false,
                     tabBarIcon: ({ color, size }) => (

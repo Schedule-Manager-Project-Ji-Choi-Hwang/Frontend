@@ -1,10 +1,14 @@
-import React, {useState, useEffect} from "react";
-import {View, Text, StyleSheet, FlatList, TouchableOpacity} from "react-native";
-import {IconButton, Card, Title, Paragraph, Menu, Provider} from "react-native-paper";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
+import { IconButton, Card, Button, Menu, Provider } from "react-native-paper";
+import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import Config from "../config/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import StudyModal from './components/StudyAnnouncementModal'; // StudyModal 컴포넌트 임포트
+import StudyModal from './components/StudyAnnouncementModal';
+import SignInScreen from "./Auth/SignInScreen";
+import Header from "./components/Header";
+
 
 const StudyCard = ({ item, onLeave }) => {
     const [visible, setVisible] = useState(false);
@@ -36,19 +40,19 @@ const StudyCard = ({ item, onLeave }) => {
                     )
                 )}
                 right={(props) => (
-                        <Menu
-                            visible={visible}
-                            onDismiss={closeMenu}
-                            anchor={
-                                <IconButton
-                                    {...props}
-                                    icon="dots-vertical"
-                                    onPress={openMenu}
-                                />
-                            }
-                        >
-                            <Menu.Item onPress={leaveStudy} title="탈퇴" />
-                        </Menu>
+                    <Menu
+                        visible={visible}
+                        onDismiss={closeMenu}
+                        anchor={
+                            <IconButton
+                                {...props}
+                                icon="dots-vertical"
+                                onPress={openMenu}
+                            />
+                        }
+                    >
+                        <Menu.Item onPress={leaveStudy} title="탈퇴" />
+                    </Menu>
                 )}
             >
 
@@ -58,17 +62,17 @@ const StudyCard = ({ item, onLeave }) => {
                 <Text style={{ color: "white" }}>
                     스터디 인원 : {item.currentMember}/{item.recruitMember}
                 </Text>
-                {/* 여기에 더 많은 스터디 정보를 추가할 수 있습니다. */}
             </Card.Content>
         </Card>
     );
 };
 
-export default function ListScreen() {
+const ListScreen = () => {
+    const { isLoggedIn, setIsLoggedIn } = useAuth();
     const [studies, setStudies] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedStudy, setSelectedStudy] = useState(null);
-    const [loginRequestMessage, setLoginRequestMessage] = useState('');
+    const [isSignInModalVisible, setSignInModalVisible] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -79,8 +83,19 @@ export default function ListScreen() {
             }
         };
 
-        fetchData();
-    }, []);
+        const checkLoginStatus = async () => {
+            const token = await AsyncStorage.getItem('AccessToken');
+            setIsLoggedIn(!!token);
+        };
+        if (isLoggedIn) {
+            fetchData();
+        }
+
+        checkLoginStatus();
+    }, [isLoggedIn]);
+
+    const showSignInModal = () => setSignInModalVisible(true);
+    const hideSignInModal = () => setSignInModalVisible(false);
 
     // 모달 열기
     const openModal = (study) => {
@@ -101,14 +116,12 @@ export default function ListScreen() {
     const fetchStudies = async () => {
         try {
             const token = await AsyncStorage.getItem('AccessToken');
-            console.log(token);
             if (!token) {
-                setLoginRequestMessage('로그인을 해주세요');
+
                 return;
             }
-
             const response = await axios.get(`${Config.MY_IP}:8080/my-study-board`, {
-                headers: {Authorization: token}
+                headers: { Authorization: token }
             });
             setStudies(response.data.data);
         } catch (error) {
@@ -120,31 +133,35 @@ export default function ListScreen() {
     return (
         <Provider>
             <View style={Styles.container}>
-                {loginRequestMessage ? (
-                    <View style={Styles.messageContainer}>
-                        <Text style={Styles.messageText}>{loginRequestMessage}</Text>
+                {!isLoggedIn ? (
+                    <View style={Styles.loginPrompt}>
+                        <Text style={Styles.loginPromptText}>로그인을 해주세요.</Text>
+                        <Button onPress={showSignInModal} mode="contained">로그인</Button>
+                        <SignInScreen
+                            isVisible={isSignInModalVisible}
+                            onClose={hideSignInModal}
+                            onLoginSuccess={() => setIsLoggedIn(true)}
+                        />
                     </View>
                 ) : (
                     <>
-                        <View style={Styles.header}>
-                            <View style={{flex: 3, justifyContent: 'center'}}>
-                                <Text style={Styles.headerTitle}>스터디 목록</Text>
-                            </View>
-                            <View style={{flex: 1}}></View>
-                        </View>
+                        <Header
+                            label={"스터디 목록"}
+                            navigation={navigation}
+                        />
                         {studies.length > 0 ? (
                             <FlatList
                                 data={studies}
-                                renderItem={({item}) => (
+                                renderItem={({ item }) => (
                                     <TouchableOpacity onPress={() => openModal(item)}>
-                                        <StudyCard item={item} onLeave={updateStudies}/>
+                                        <StudyCard item={item} onLeave={updateStudies} />
                                     </TouchableOpacity>
                                 )}
                                 keyExtractor={item => item.id.toString()}
                             />
                         ) : (
                             <View style={Styles.emptyContainer}>
-                                <Text>가입된 스터디가 없어요</Text>
+                                <Text style={{ color: 'grey' }}>가입된 스터디가 없어요</Text>
                             </View>
                         )}
                         <StudyModal
@@ -156,43 +173,27 @@ export default function ListScreen() {
                 )}
             </View>
         </Provider>
-    );
-}
+    )
+};
 
+export default ListScreen;
 
-
-    const Styles = StyleSheet.create({
-    messageContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    messageText: {
-        fontSize: 18,
-        color: 'red',
-    },
-    modalContainer: {
-        backgroundColor: 'white',
-        padding: 20,
-        // 여기에 모달의 스타일을 정의합니다.
-    },
+const Styles = StyleSheet.create({
     container: {
         flex: 1
-        //backgroundColor: 'red',
     },
-    header: {
-        flexDirection: 'row',
-        height: 45,
-        backgroundColor: 'white',
+    loginPrompt: {
+        flex: 1,
+        justifyContent: 'center',
         alignItems: 'center'
     },
-    headerTitle: {
-        fontSize: 20,
-        textAlign: 'center'
+    loginPromptText: {
+        fontSize: 18,
+        marginBottom: 10
     },
-    settingBtn: {
-        flex: 1,
+    emptyContainer: {
         alignItems: 'center',
-        justifyContent: 'flex-end'
-    },
-})
+        justifyContent: 'center',
+        marginTop: '50%'
+    }
+});

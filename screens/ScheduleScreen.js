@@ -2,16 +2,20 @@ import React, { useState, useEffect } from "react";
 import { View, Text, Pressable, StyleSheet, FlatList } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { Ionicons } from "@expo/vector-icons";
-import { FAB, Portal, Provider, Card } from "react-native-paper";
-import { registerTranslation } from 'react-native-paper-dates';
+import { Button, FAB, Portal, Provider, Card } from "react-native-paper";
+import { useNavigation } from '@react-navigation/native';
+import { useAuth } from "../context/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import Header from "./components/Header";
 import ScheduleCardModal from "./components/ScheduleCardModal";
 import ScheduleAddModal from "./components/ScheduleAddModal";
+import SignInScreen from "./Auth/SignInScreen";
 import Config from "../config/config";
 
 export default function ScheduleScreen() {
+    const { isLoggedIn, setIsLoggedIn } = useAuth();
+    const navigation = useNavigation();
 
     const [selected, setSelected] = useState('');
     const [events, setEvents] = useState([]);
@@ -28,24 +32,38 @@ export default function ScheduleScreen() {
     const [FABStatus, setFABStatus] = useState(false);
     const [scheduleTitle, setScheduleTitle] = useState('');
     const [studyTitle, setStudyTitle] = useState('');
-    const [markedDates, setMarkedDates] = useState({})
+    const [markedDates, setMarkedDates] = useState({});
+    const [isSignInModalVisible, setSignInModalVisible] = useState(false);
 
     useEffect(() => {
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        let mm = today.getMonth() + 1;
-        let dd = today.getDate();
-        if (mm < 10) {
-            mm = `0${mm}`;
-        }
-        if (dd < 10) {
-            dd = `0${dd}`;
-        }
-        const formattedToday = `${yyyy}-${mm}-${dd}`;
+        const initialize = async () => {
+            const token = await AsyncStorage.getItem('AccessToken');
+            setIsLoggedIn(!!token);
 
-        console.log(formattedToday);
+            if (token) {
+                fetchTodaySchedule();
+            }
+        };
+
+        initialize();
+    }, [isLoggedIn]);
+
+    const fetchTodaySchedule = async () => {
+        const today = new Date();
+        const formattedToday = formatDate(today);
         onDayPress({ dateString: formattedToday });
-    }, []);
+    };
+
+    const formatDate = (date) => {
+        const yyyy = date.getFullYear();
+        let mm = date.getMonth() + 1;
+        let dd = date.getDate();
+
+        mm = mm < 10 ? `0${mm}` : mm;
+        dd = dd < 10 ? `0${dd}` : dd;
+
+        return `${yyyy}-${mm}-${dd}`;
+    };
 
     const onScheduleEdit = async () => {
         if (selected) {
@@ -58,7 +76,7 @@ export default function ScheduleScreen() {
             const token = await AsyncStorage.getItem('AccessToken');
             if (!token) {
                 console.log('No access token');
-                return null;
+                return { data: [] };
             }
             const response = await axios.get(`${Config.MY_IP}:8080/main?date=${date}`, {
                 headers: { Authorization: token }
@@ -74,7 +92,6 @@ export default function ScheduleScreen() {
         setSelected(day.dateString);
         try {
             const dateData = await fetchScheduleDate(day.dateString);
-            // 개발자 도구 콘솔용
             if (dateData.data.length == 0) {
                 console.log("오늘은 일정이 없어요");
             }
@@ -142,10 +159,12 @@ export default function ScheduleScreen() {
                 key={item.scheduleId}
                 style={{
                     margin: 10,
-                    backgroundColor: item.isPersonal ? '#25232a' : '#62662a',
+                    backgroundColor: item.isPersonal ? '#FFFFFF' : '#E0F8F7',
+                    elevation: 5
                 }}>
                 <Card.Title
                     title={item.scheduleName}
+                    titleStyle={{ color: 'black' }}
                     {...(item.isPersonal && item.color && {
                         left: (props) => (
                             <View {...props} style={{
@@ -158,7 +177,7 @@ export default function ScheduleScreen() {
                         )
                     })} />
                 <Card.Content>
-                    <Text style={{ color: 'white' }}>{item.subjectName}</Text>
+                    <Text style={{ color: 'black' }}>{item.subjectName}</Text>
                 </Card.Content>
             </Card>
         </Pressable>
@@ -176,31 +195,24 @@ export default function ScheduleScreen() {
         )
     }
 
-    registerTranslation('ko', {
-        save: 'Save',
-        selectSingle: 'Select date',
-        selectMultiple: 'Select dates',
-        selectRange: 'Select period',
-        notAccordingToDateFormat: (inputFormat) =>
-            `Date format must be ${inputFormat}`,
-        mustBeHigherThan: (date) => `Must be later then ${date}`,
-        mustBeLowerThan: (date) => `Must be earlier then ${date}`,
-        mustBeBetween: (startDate, endDate) =>
-            `Must be between ${startDate} - ${endDate}`,
-        dateIsDisabled: 'Day is not allowed',
-        previous: 'Previous',
-        next: 'Next',
-        typeInDate: 'Type in date',
-        pickDateFromCalendar: 'Pick date from calendar',
-        close: 'Close',
-    })
+    const showSignInModal = () => setSignInModalVisible(true);
+
+    const hideSignInModal = () => setSignInModalVisible(false);
+
+    const handleLoginSuccess = () => {
+        hideSignInModal();
+        const today = new Date();
+        const formattedToday = formatDate(today);
+        onDayPress({ dateString: formattedToday });
+    };
 
     return (
         <Provider>
             <Portal>
                 <View style={Styles.container}>
                     <Header
-                        label={"공부일정관리앱"}
+                        label={"일정"}
+                        navigation={navigation}
                     />
                     <Calendar
                         style={Styles.calendar}
@@ -217,76 +229,88 @@ export default function ScheduleScreen() {
                             },
                         }}
                     />
-                    {
-                        events.length === 0 ? (
-                            <View style={Styles.noEventsView}>
-                                <Text style={Styles.noEventsText}>오늘은 일정이 없어요</Text>
-                            </View>
-                        ) : (
-                            <FlatList
-                                data={events}
-                                renderItem={renderScheduleCard}
-                                keyExtractor={(item, index) => item.scheduleName.toString() + item.scheduleId.toString() || index.toString()}
-                                contentContainerStyle={{ flexGrow: 1 }}
+                    <SignInScreen
+                        isVisible={isSignInModalVisible}
+                        onClose={hideSignInModal}
+                        onLoginSuccess={handleLoginSuccess}
+                    />
+                    {isLoggedIn ? (
+                        <>
+                            {events.length > 0 ? (
+                                <FlatList
+                                    data={events}
+                                    renderItem={renderScheduleCard}
+                                    keyExtractor={(item, index) => item.scheduleName.toString() + item.scheduleId.toString() || index.toString()}
+                                    contentContainerStyle={{ flexGrow: 1 }}
+                                />
+                            ) : (
+                                <View style={Styles.noEventsView}>
+                                    <Text style={{ color: 'grey' }}>오늘은 일정이 없어요</Text>
+                                </View>
+                            )}
+                            <ScheduleCardModal
+                                visible={scheduleCardModal}
+                                onClose={() => setScheduleCardModal(false)}
+                                onScheduleEdit={onScheduleEdit}
+                                scheduleName={currentScheduleName}
+                                color={currentColor}
+                                period={currenPeriod}
+                                scheduleId={currenScheduleId}
+                                subjectId={currentSubjectId}
+                                isPersonal={currentIsPersonal}
                             />
-                        )
-                    }
-                    <ScheduleCardModal
-                        visible={scheduleCardModal}
-                        onClose={() => setScheduleCardModal(false)}
-                        onScheduleEdit={onScheduleEdit}
-                        scheduleName={currentScheduleName}
-                        color={currentColor}
-                        period={currenPeriod}
-                        scheduleId={currenScheduleId}
-                        subjectId={currentSubjectId}
-                        isPersonal={currentIsPersonal}
-                    />
-                    <ScheduleAddModal
-                        visible={scheduleAddModal}
-                        scheduleTitle={scheduleTitle}
-                        onScheduleEdit={onScheduleEdit}
-                        onClose={() => setScheduleAddModal(false)}
-                        isPersonal={isPersonal}
-                        placeholder={"과목을 선택하세요."}
-                    />
-                    <ScheduleAddModal
-                        visible={groupStudyModal}
-                        scheduleTitle={studyTitle}
-                        onScheduleEdit={onScheduleEdit}
-                        onClose={() => setGroupStudyModal(false)}
-                        isPersonal={() => setIsPersonal(false)}
-                        placeholder={"스터디를 선택하세요."} />
-                    <FAB.Group
-                        open={FABStatus}
-                        icon={FABStatus ? 'close' : 'plus'}
-                        actions={[
-                            {
-                                icon: 'calendar-edit',
-                                label: '개인 일정',
-                                onPress: () => {
-                                    if (FABStatus) {
-                                        setScheduleAddModal(true);
+                            <ScheduleAddModal
+                                visible={scheduleAddModal}
+                                scheduleTitle={scheduleTitle}
+                                onScheduleEdit={onScheduleEdit}
+                                onClose={() => setScheduleAddModal(false)}
+                                isPersonal={isPersonal}
+                                placeholder={"과목을 선택하세요."}
+                            />
+                            <ScheduleAddModal
+                                visible={groupStudyModal}
+                                scheduleTitle={studyTitle}
+                                onScheduleEdit={onScheduleEdit}
+                                onClose={() => setGroupStudyModal(false)}
+                                isPersonal={() => setIsPersonal(false)}
+                                placeholder={"스터디를 선택하세요."} />
+                            <FAB.Group
+                                open={FABStatus}
+                                icon={FABStatus ? 'close' : 'plus'}
+                                actions={[
+                                    {
+                                        icon: 'calendar-edit',
+                                        label: '개인 일정',
+                                        onPress: () => {
+                                            if (FABStatus) {
+                                                setScheduleAddModal(true);
+                                            }
+                                        }
+                                    },
+                                    {
+                                        icon: 'account-group',
+                                        label: '스터디 일정',
+                                        onPress: () => {
+                                            if (FABStatus) {
+                                                setGroupStudyModal(true);
+                                            }
+                                        }
                                     }
-                                }
-                            },
-                            {
-                                icon: 'account-group',
-                                label: '스터디 일정',
-                                onPress: () => {
+                                ]}
+                                onStateChange={onFABStateChange}
+                                onPress={() => {
                                     if (FABStatus) {
-                                        setGroupStudyModal(true);
+                                        setFABStatus(!FABStatus);
                                     }
-                                }
-                            }
-                        ]}
-                        onStateChange={onFABStateChange}
-                        onPress={() => {
-                            if (FABStatus) {
-                                setFABStatus(!open);
-                            }
-                        }}
-                    />
+                                }}
+                            />
+                        </>
+                    ) : (
+                        <View style={Styles.loginPrompt}>
+                            <Text style={Styles.loginPromptText}>로그인을 해주세요.</Text>
+                            <Button mode="contained" onPress={showSignInModal}>로그인</Button>
+                        </View>
+                    )}
                 </View>
             </Portal>
         </Provider>
@@ -297,62 +321,23 @@ const Styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    calendar: {
-        width: '100%'
-    },
     card: {
         padding: 20,
         marginVertical: 8,
         marginHorizontal: 16,
     },
-    scroll: {
-        marginHorizontal: 20
-    },
-    centeredView: {
-        flex: 1,
+    noEventsView: {
+        marginTop: '50%',
         alignItems: 'center',
-        marginTop: 22,
+        justifyContent: 'center',
     },
-    modalMainView: {
-        width: '100%',
-        height: '100%',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    cardModalView: {
-        flex: 1,
-        margin: 20,
-        marginTop: '10%',
-        backgroundColor: 'white',
-        borderRadius: 20,
-        padding: 25,
-    },
-    modalView: {
-        margin: 20,
-        marginTop: '70%',
-        backgroundColor: 'white',
-        borderRadius: 20,
-        padding: 25,
+    loginPrompt: {
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-        elevation: 5,
+        justifyContent: 'center',
+        marginTop: '50%'
     },
-    modalInput: {
-        width: '100%',
-        height: 30,
-        marginBottom: 10,
-        backgroundColor: 'white',
-        color: 'black'
-    },
-    addScheduleBtn: {
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        marginBottom: 15,
-        textAlign: 'center',
+    loginPromptText: {
+        fontSize: 16,
+        marginBottom: 10
     }
 })
