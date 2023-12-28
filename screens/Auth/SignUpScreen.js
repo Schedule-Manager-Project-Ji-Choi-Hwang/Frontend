@@ -177,7 +177,7 @@ const Styles = StyleSheet.create({
         width: '70%',
         textAlign: 'center',
         marginBottom: '15%',
-        fontSize: '30px'
+        // fontSize: '30px'
     },
     input: {
         width: '70%',

@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import React, { useState } from "react";
-import { View, Text, Alert, SafeAreaView, StyleSheet } from "react-native";
+import { View, Text, Alert, StatusBar, StyleSheet } from "react-native";
 import { IconButton, Menu } from "react-native-paper";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigation } from "@react-navigation/native";
@@ -13,7 +13,7 @@ const Header = ({ label }) => {
   const [pschangeModal, setPsChangeModal] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, setIsLoggedIn } = useAuth();
   const navigation = useNavigation();
 
   const openMenu = () => setMenuVisible(true);
@@ -52,9 +52,10 @@ const Header = ({ label }) => {
       })
       await AsyncStorage.removeItem('AccessToken');
       await AsyncStorage.removeItem('Refresh-Token');
+      setIsLoggedIn(false);
       alert("계정이 삭제되었습니다.");
       Alert.alert("계정이 삭제되었습니다.");
-      navigation.navigate('ScheduleScreen');
+      // navigation.navigate('ScheduleScreen');
     } catch (error) {
       console.log("Delete Error : ", error);
     }
@@ -70,7 +71,7 @@ const Header = ({ label }) => {
     try {
       await AsyncStorage.removeItem('AccessToken');
       await AsyncStorage.removeItem('Refresh-Token');
-      navigation.navigate('ScheduleScreen');
+      setIsLoggedIn(false);
     } catch (error) {
       console.log('Logout error:', error);
     }
@@ -78,35 +79,34 @@ const Header = ({ label }) => {
   }
 
   return (
-    <SafeAreaView>
-      <View style={Styles.header}>
-        <View style={{ flex: 1, justifyContent: "flex-start" }}>
-          <Text style={Styles.headerTitle}>{label}</Text>
-        </View>
-        <View style={{ flex: 1 }}></View>
-        {isLoggedIn && (
-          <Menu
+  <View style={Styles.header}>
+    <StatusBar/>
+    <View style={{ flex: 1, justifyContent: "flex-start" }}>
+      <Text style={Styles.headerTitle}>{label}</Text>
+    </View>
+    <View style={{ flex: 1 }}></View>
+    {isLoggedIn && (
+        <Menu
             visible={menuVisible}
             onDismiss={closeMenu}
             anchor={
               <IconButton
-                icon="cog"
-                iconColor="grey"
-                size={25}
-                onPress={openMenu}
+                  icon="cog"
+                  iconColor="grey"
+                  size={25}
+                  onPress={openMenu}
               />
             }>
-            <Menu.Item onPress={deleteAlert} title="회원탈퇴" />
-            <Menu.Item onPress={changePs} title="비밀번호 변경" />
-            <Menu.Item onPress={logout} title="로그아웃" />
-          </Menu>
-        )}
-        <PasswordChangeScreen
-          isVisible={pschangeModal}
-          onClose={() => setPsChangeModal(false)}
-        />
-      </View>
-    </SafeAreaView>
+          <Menu.Item onPress={deleteAlert} title="회원탈퇴" />
+          <Menu.Item onPress={changePs} title="비밀번호 변경" />
+          <Menu.Item onPress={logout} title="로그아웃" />
+        </Menu>
+    )}
+    <PasswordChangeScreen
+        isVisible={pschangeModal}
+        onClose={() => setPsChangeModal(false)}
+    />
+  </View>
   );
 };
 

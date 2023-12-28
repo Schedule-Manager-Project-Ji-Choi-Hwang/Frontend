@@ -214,6 +214,7 @@ export default function ScheduleScreen() {
                     <Header
                         label={"일정"}
                         navigation={navigation}
+                        fetchData={fetchTodaySchedule}
                     />
                     <Calendar
                         style={Styles.calendar}
