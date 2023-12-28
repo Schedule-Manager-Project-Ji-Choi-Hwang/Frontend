@@ -28,8 +28,8 @@ const SignUpScreen = ({ isVisible, onClose }) => {
     const emailInputRef = createRef();
 
     const handleRegistrationSuccess = () => {
-        setIsRegistraionSuccess(true);
         alert('회원가입 성공');
+        setIsRegistraionSuccess(true);
         onClose();
     };
 
@@ -64,9 +64,12 @@ const SignUpScreen = ({ isVisible, onClose }) => {
 
         await axios.post(`${Config.MY_IP}:8080/member/sign-up`, dataToSend)
             .then((response) => {
-                if (response.data === '회원가입 성공') {
-                    handleRegistrationSuccess();
+                if (response.status == 200) {
+                    // handleRegistrationSuccess();
+                    alert('회원가입 성공');
+                    onClose();
                 } else {
+                    alert('회원가입 실패');
                     setErrortext(response.data.msg);
                 }
             })

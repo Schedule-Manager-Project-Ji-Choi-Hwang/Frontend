@@ -106,14 +106,18 @@ const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeho
 
         if (title.trim() === '') {
             Alert.alert("경고", "제목을 입력해주세요.");
+            return;
         }
         if (isPersonal === true && select === null) {
             Alert.alert("경고", "과목을 선택해주세요.");
+            return;
         } else if (isPersonal !== true && select === null) {
             Alert.alert("경고", "스터디를 선택해주세요.");
+            return;
         }
-        if (scheduleType != "single" && repeat.trim() === '') {
+        if (scheduleType !== "single" && repeat.trim() === '') {
             Alert.alert("경고", "반복 주기를 선택해주세요.");
+            return;
         }
 
 
@@ -236,7 +240,7 @@ const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeho
 
     return (
         <Provider>
-            <Portal>
+            {/*<Portal>*/}
                 <Modal
                     animationType="fade"
                     visible={visible}
@@ -322,7 +326,7 @@ const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeho
                         </View>
                     </View>
                 </Modal >
-            </Portal>
+            {/*</Portal>*/}
         </Provider>
     )
 }

@@ -45,12 +45,12 @@ const Header = ({ label }) => {
         return null;
       }
       await axios.delete(`${Config.MY_IP}:8080/member/delete`, {
-        header: { 'Authorization': token }
+        headers: { 'Authorization': token }
       })
       await AsyncStorage.removeItem('AccessToken');
       await AsyncStorage.removeItem('Refresh-Token');
-      setIsLoggedIn(false);
       Alert.alert("회원 탈퇴", "계정이 삭제되었습니다.");
+      setIsLoggedIn(false);
     } catch (error) {
       console.log("Delete Error : ", error);
     }

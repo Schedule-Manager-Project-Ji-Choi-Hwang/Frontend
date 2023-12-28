@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {View, StyleSheet} from 'react-native';
-import { Modal, Portal, Text, Button, TextInput, } from 'react-native-paper';
+import { Modal, Text, Button, TextInput, } from 'react-native-paper';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import Config from "../../config/config";
@@ -77,7 +77,7 @@ const EditAnnouncementModal = ({ visible, onDismiss, studyPostId, announcement, 
     }
 
     return (
-        <Portal>
+        // <Portal>
             <Modal visible={visible} onDismiss={onDismiss} contentContainerStyle={styles.modalContainer}>
                 <View style={styles.modalContent}>
                     <Text style={styles.modalTitle}>공지사항 수정</Text>
@@ -110,7 +110,7 @@ const EditAnnouncementModal = ({ visible, onDismiss, studyPostId, announcement, 
                     </Button>
                 </View>
             </Modal>
-        </Portal>
+        // </Portal>
     );
 };
 
