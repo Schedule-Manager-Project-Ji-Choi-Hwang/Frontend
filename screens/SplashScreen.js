@@ -8,21 +8,13 @@ export default function SplashScreen() {
 
   const [animating, setAnimating] = useState(true);
   const navigation = useNavigation();
+
   useEffect(() => {
     setTimeout(() => {
       setAnimating(false);
-      handleGetToken();
+      navigation.navigate("Navigation");
     }, 2000);
   }, []);
-
-  const handleGetToken = async () => {
-    const dataToken = await AsyncStorage.getItem("AccessToken");
-    if (!dataToken) {
-      navigation.navigate("Auth");
-    } else {
-      navigation.navigate("Auth");
-    }
-  }
 
   return (
     <View style={styles.container}>

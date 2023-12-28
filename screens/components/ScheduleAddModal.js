@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { View, Text, Modal, StyleSheet } from "react-native";
+import { View, Text, Modal, Alert, StyleSheet } from "react-native";
 import { Button, TextInput, IconButton, Portal, Provider, RadioButton, SegmentedButtons, Divider } from "react-native-paper";
 import { DatePickerModal } from 'react-native-paper-dates';
 import DropDownPicker from "react-native-dropdown-picker";
 import Config from "../../config/config";
-import { useNavigation } from "@react-navigation/native";
 
 const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeholder, onScheduleEdit }) => {
     const [title, setTitle] = useState('');
@@ -15,15 +14,10 @@ const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeho
     const [openStartDatePicker, setOpenStartDatePicker] = useState(false);
     const [openEndDatePicker, setOpenEndDatePicker] = useState(false);
     const [repeat, setRepeat] = useState("");
-    const [openList, setOpenList] = useState(false);
     const [select, setSelect] = useState(null);
     const [items, setItems] = useState([]);
-    // const [subjectItems, setSubjectItems] = useState([]);
-    // const [studyItems, setStudyItems] = useState([])
     const [openDropDown, setOpenDropDown] = useState(false);
-
     const [scheduleType, setScheduleType] = useState('single'); // 'single' 또는 'range'
-    const navigation = useNavigation();
 
     const renderScheduleOptions = () => {
         if (scheduleType === 'single') {
@@ -36,15 +30,15 @@ const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeho
         } else {
             return (
                 <View>
-                    <Button
-                        onPress={() => setOpenStartDatePicker(true)}>
-                        {formatDate(startDate)}
-                    </Button>
-                    <Text>~</Text>
-                    <Button
-                        onPress={() => setOpenEndDatePicker(true)}>
-                        {formatDate(endDate)}
-                    </Button>
+                    <View style={Styles.rangeDateContainer}>
+                        <Button onPress={() => setOpenStartDatePicker(true)}>
+                            {formatDate(startDate)}
+                        </Button>
+                        <Text style={Styles.rangeDateText}>~</Text>
+                        <Button onPress={() => setOpenEndDatePicker(true)}>
+                            {formatDate(endDate)}
+                        </Button>
+                    </View>
                     <SegmentedButtons
                         value={repeat}
                         onValueChange={setRepeat}
@@ -74,9 +68,9 @@ const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeho
         setRepeat("");
         setStartDate(new Date());
         setEndDate(new Date());
+        setScheduleType('single');
         onClose();
     }
-
 
     const handleAdd = async () => {
         let dataToSend;
@@ -109,6 +103,23 @@ const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeho
                 };
             }
         }
+
+        if (title.trim() === '') {
+            alert("제목을 입력해주세요.");
+            Alert.alert("제목을 입력해주세요.");
+        }
+        if (isPersonal === true && select === null) {
+            alert("과목을 선택해주세요.");
+            Alert.alert("과목을 선택해주세요.");
+        } else if (isPersonal !== true && select === null) {
+            alert("스터디를 선택해주세요.");
+            Alert.alert("스터디를 선택해주세요.");
+        }
+        if (scheduleType != "single" && repeat.trim() === '') {
+            alert("반복 주기를 선택해주세요.");
+            Alert.alert("반복 주기를 선택해주세요.");
+        }
+
 
         try {
             const token = await AsyncStorage.getItem('AccessToken');
@@ -276,7 +287,6 @@ const AddScheduleModal = ({ visible, onClose, scheduleTitle, isPersonal, placeho
                                     date={startDate}
                                     onConfirm={handleStartDateConfirm}
                                 />
-
                                 <DatePickerModal
                                     animationType="slide"
                                     locale="en"
@@ -350,25 +360,27 @@ const Styles = StyleSheet.create({
     modalContent: {
         zIndex: 1000
     },
-    radioButtonContainer: {
+    rangeDateContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-around',
     },
-    contentDate: {
-        justifyContent: "space-around",
-        flexDirection: "row"
+    rangeDateText: {
+        fontSize: 16,
+        marginHorizontal: 5,
     },
-    contentBtn: {
+    radioButtonContainer: {
         marginTop: 5,
-        alignItems: "stretch"
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-around',
     },
     dropDown: {
         marginTop: 5,
     },
     divider: {
         backgroundColor: "black",
-        marginTop: 5
+        marginTop: 10
     },
     modalFooter: {
         margin: 5,

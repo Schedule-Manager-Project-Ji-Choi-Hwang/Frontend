@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
-import { View, Modal, StyleSheet } from "react-native";
+import { View, Modal, Alert, StyleSheet } from "react-native";
 import { Button, TextInput, IconButton, } from "react-native-paper";
 import { DatePickerModal } from 'react-native-paper-dates';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -16,8 +16,8 @@ const formatDate = (date) => {
     return `${year}-${month}-${day}`;
 };
 
-const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
-    scheduleId, subjectId, isPersonal, onScheduleEdit }) => { // isPersonal, 콜백함수 추가
+const ScheduleCardModal = ({ visible, onClose, scheduleName, period,
+    scheduleId, subjectId, isPersonal, onScheduleEdit }) => {
 
     const [editTitle, setEditTitle] = useState(scheduleName);
     const [editDate, setEditDate] = useState(formatDate(new Date(period)));
@@ -28,10 +28,9 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
         setEditDate(formatDate(new Date(period)));
     }, [scheduleName, period]);
 
-    // 개인 및 스터디를 구별하여 각각의 알맞은 경로로 수정 요청을 보내도록 수정
     const updateSchedule = async (scheduleId, subjectId, isPersonal) => {
         try {
-            if (isPersonal === true) { // 개인 과목의 일정인 경우
+            if (isPersonal === true) {
                 const token = await AsyncStorage.getItem('AccessToken');
                 if (!token) {
                     console.log('No access token');
@@ -44,7 +43,7 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
                     headers: { Authorization: token }
                 });
                 return response;
-            } else { // 스터디 그룹의 일정인 경우
+            } else {
                 const token = await AsyncStorage.getItem('AccessToken');
                 if (!token) {
                     console.log('No access token');
@@ -63,7 +62,6 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
         }
     }
 
-    // 개인 및 스터디를 구별하여 각각의 알맞은 경로로 삭제 요청을 보내도록 추가
     const deleteSchedule = async (scheduleId, subjectId, isPersonal) => {
         try {
             if (isPersonal === true) {
@@ -102,24 +100,27 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
     };
 
     const handleClose = () => {
+        setEditTitle(scheduleName);
+        setEditDate(formatDate(new Date(period)));
         onClose();
     }
 
-    // 수정(save) 시 전달받은 콜백함수(화면 갱신) 코드가 실행되도록 변경
     const handleSave = async () => {
+        if (editTitle.trim() === '') {
+            alert("일정 제목을 다시 입력해주세요.");
+            Alert.alert("일정 제목을 다시 입력해주세요.");
+            return;
+        }
         const data = await updateSchedule(scheduleId, subjectId, isPersonal);
         if (data) {
-            // navigation.replace('Navigaion');
             onScheduleEdit();
         }
         onClose();
     }
 
-    // 삭제(delete) 시 전달받은 콜백함수(화면 갱신) 코드가 실행되도록 추가
     const handleDelete = async () => {
         const data = await deleteSchedule(scheduleId, subjectId, isPersonal);
         if (data) {
-            // navigation.replace('Navigaion');
             onScheduleEdit();
         }
         onClose();
@@ -163,7 +164,6 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
                             visible={open}
                             onDismiss={() => setOpen(false)}
                             date={parseDate(editDate)}
-                            // presentationStyle='formSheet'
                             onConfirm={(params) => {
                                 setOpen(false);
                                 setEditDate(formatDate(params.date));
@@ -180,7 +180,7 @@ const ScheduleCardModal = ({ navigation, visible, onClose, scheduleName, period,
                         <Button
                             style={{ flex: 1 }}
                             mode='contained'
-                            onPress={handleDelete} // delete 버튼 클릭 시 해당 함수 실행
+                            onPress={handleDelete}
                         >
                             Delete</Button>
                     </View>

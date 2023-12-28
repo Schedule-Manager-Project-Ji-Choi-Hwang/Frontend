@@ -1,7 +1,7 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useState, useEffect } from "react";
-import { Modal, View, StyleSheet } from "react-native";
+import { Modal, View, Alert, StyleSheet } from "react-native";
 import { Button, TextInput, IconButton } from "react-native-paper";
 import DropDownPicker from "react-native-dropdown-picker";
 import Config from "../../config/config";
@@ -12,12 +12,16 @@ const SubjectModal = ({ visible, onClose, onSubjectAdded, placeholder, editingSu
     const [openDropDown, setOpenDropDown] = useState(false);
     const [selectedColor, setSelectedColor] = useState(null);
     const colors = [
-        { label: "Black", value: "black", icon: () => <View style={getStyleForColor('black')} /> },
-        { label: "White", value: "white", icon: () => <View style={getStyleForColor('white')} /> },
-        { label: "Blue", value: "blue", icon: () => <View style={getStyleForColor('blue')} /> },
-        { label: "Pink", value: "pink", icon: () => <View style={getStyleForColor('pink')} /> },
         { label: "Red", value: "red", icon: () => <View style={getStyleForColor('red')} /> },
+        { label: "Orange", value: "orange", icon: () => <View style={getStyleForColor('orange')} /> },
         { label: "Yellow", value: "yellow", icon: () => <View style={getStyleForColor('yellow')} /> },
+        { label: "Green", value: "green", icon: () => <View style={getStyleForColor('green')} /> },
+        { label: "Cyan", value: "cyan", icon: () => <View style={getStyleForColor('cyan')} /> },
+        { label: "Blue", value: "blue", icon: () => <View style={getStyleForColor('blue')} /> },
+        { label: "Violet", value: "violet", icon: () => <View style={getStyleForColor('violet')} /> },
+        { label: "Pink", value: "pink", icon: () => <View style={getStyleForColor('pink')} /> },
+        { label: "Brown", value: "brown", icon: () => <View style={getStyleForColor('brown')} /> },
+        { label: "Black", value: "black", icon: () => <View style={getStyleForColor('black')} /> },
     ];
 
     useEffect(() => {
@@ -49,6 +53,14 @@ const SubjectModal = ({ visible, onClose, onSubjectAdded, placeholder, editingSu
             subjectName: subjectTitle,
             color: selectedColor
         };
+        if (subjectTitle.trim() === '') {
+            alert("과목 명을 입력하세요.");
+            Alert.alert("과목 명을 입력하세요.");
+        }
+        if (selectedColor.trim() === '') {
+            alert("과목 색상을 선택하세요.");
+            Alert.alert("과목 색상을 선택하세요.");
+        }
 
         try {
             const token = await AsyncStorage.getItem('AccessToken');
